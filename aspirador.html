@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador do Mundo do Aspirador</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 100px);
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center; /* Centraliza a grid horizontalmente */
+        }
+        .tile {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            background-color: #fff;
+        }
+        .robot {
+            background-color: yellow;
+        }
+        .dirt {
+            background-color: brown;
+            color: white;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Permite quebra de linha se necessário */
+        }
+        .reset-button {
+            margin-top: 10px; /* Espaço acima do botão reiniciar */
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulador do Mundo do Aspirador</h1>
+        <div class="grid">
+            <div id="tile-0" class="tile"> </div>
+            <div id="tile-1" class="tile"> </div>
+        </div>
+        <div class="controls">
+            <button onclick="moveLeft()">⏴ Esquerda</button>
+            <button onclick="aspire()">Aspirar ♨</button>
+            <button onclick="moveRight()">Direita ⏵</button>
+        </div>
+        <button class="reset-button" onclick="resetSimulation()">Reiniciar ↻</button>
+    </div>
+
+    <script>
+        let robotPosition;
+        let dirtPositions = [false, false];
+
+        function updateGrid() {
+            const tile0 = document.getElementById('tile-0');
+            const tile1 = document.getElementById('tile-1');
+
+            // Resetar classes
+            tile0.className = 'tile';
+            tile1.className = 'tile';
+
+            // Verificar posição do robô e sujeira em tile 0
+            if (robotPosition === 0) {
+                tile0.classList.add('robot');
+                tile0.textContent = "🤖";
+            } else {
+                tile0.textContent = "";
+            }
+            if (dirtPositions[0]) {
+                tile0.classList.add('dirt');
+                tile0.textContent += " 💩";
+            }
+
+            // Verificar posição do robô e sujeira em tile 1
+            if (robotPosition === 1) {
+                tile1.classList.add('robot');
+                tile1.textContent = "🤖";
+            } else {
+                tile1.textContent = "";
+            }
+            if (dirtPositions[1]) {
+                tile1.classList.add('dirt');
+                tile1.textContent += " 💩";
+            }
+        }
+
+        function moveLeft() {
+            if (robotPosition > 0) {
+                robotPosition--;
+                updateGrid();
+            }
+        }
+
+        function moveRight() {
+            if (robotPosition < 1) {
+                robotPosition++;
+                updateGrid();
+            }
+        }
+
+        function aspire() {
+            if (dirtPositions[robotPosition]) {
+                dirtPositions[robotPosition] = false;
+                updateGrid();
+            }
+        }
+
+        function resetSimulation() {
+            // Sorteia a posição do robô (0 ou 1)
+            robotPosition = Math.floor(Math.random() * 2);
+
+            // Sorteia a sujeira (true ou false para cada ladrilho)
+            dirtPositions = [Math.random() < 0.5, Math.random() < 0.5];
+
+            updateGrid();
+        }
+
+        // Inicializa a simulação com um estado aleatório
+        resetSimulation();
+    </script>
+</body>
+</html>
