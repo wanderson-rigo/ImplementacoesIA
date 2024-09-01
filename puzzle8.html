@@ -79,6 +79,12 @@
         .shuffle-button:hover {
             background-color: #45a049;
         }
+
+        .move-count {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -102,13 +108,20 @@
     <div class="inversions" id="inversionsCount">
         Inversões: 0 (Paridade: par)
     </div>
+    <div class="move-count" id="moveCount">
+        Número de jogadas: 0
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const tiles = document.querySelectorAll('.tile');
             const grid = document.querySelector('.grid');
             const boardStateDisplay = document.getElementById('boardState');
             const inversionsDisplay = document.getElementById('inversionsCount');
+            const moveCountDisplay = document.getElementById('moveCount');
             const shuffleButton = document.getElementById('shuffleButton');
+
+            const goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+            let moveCount = 0;
 
             // Inicializa o estado do tabuleiro
             let boardState = Array.from(tiles).map(tile => parseInt(tile.dataset.value));
@@ -133,6 +146,15 @@
                 const inversions = calculateInversions(boardState);
                 const parity = inversions % 2 === 0 ? "par" : "ímpar";
                 inversionsDisplay.textContent = `Inversões: ${inversions} (Paridade: ${parity})`;
+
+                // Exibe o número de jogadas
+                moveCountDisplay.textContent = `Número de jogadas: ${moveCount}`;
+            }
+
+            function checkGoalState() {
+                if (boardState.join(',') === goalState.join(',')) {
+                    alert(`Você resolveu o puzzle em ${moveCount} jogadas!`);
+                }
             }
 
             function shuffleBoard() {
@@ -140,6 +162,8 @@
                 do {
                     boardState = boardState.sort(() => Math.random() - 0.5);
                 } while (calculateInversions(boardState) % 2 !== 0); // Garante que o estado seja resolvível
+
+                moveCount = 0; // Reseta o contador de jogadas
 
                 // Atualiza o conteúdo visual
                 tiles.forEach((tile, index) => {
@@ -198,8 +222,14 @@
                     tile.classList.add('empty');
                     emptyTile.classList.remove('empty');
 
+                    // Incrementa o contador de jogadas
+                    moveCount++;
+
                     // Atualiza as exibições
                     updateDisplay();
+
+                    // Verifica se o estado meta foi alcançado
+                    checkGoalState();
                 }
             }
         });
