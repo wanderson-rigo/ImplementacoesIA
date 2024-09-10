@@ -58,15 +58,28 @@
 
         .board-state {
             margin-top: 20px;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            color: #333;
+            color: #1261a1;
+            margin: 5px;
+            border: 2px solid;
+            padding: 10px 20px;
+            box-shadow: 2px 2px #2196f3;
+            border-radius: 6px;
+            border-color: #2196f3;
         }
 
         .inversions {
-            margin-top: 10px;
+            margin-top: 20px;
             font-size: 16px;
-            color: #555;
+            color: #1261a1;
+            margin: 5px;
+            border: 2px solid;
+            padding: 10px 20px;
+            box-shadow: 2px 2px #2196f3;
+            font-weight: bold;
+            border-radius: 6px;
+            border-color: #2196f3;
         }
 
         .shuffle-button {
@@ -77,9 +90,9 @@
             background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.3s;
+            margin: 5px;
         }
 
         .shuffle-button:hover {
@@ -87,19 +100,60 @@
         }
 
         .move-count {
-            margin-top: 10px;
+            margin-top: 20px;
             font-size: 16px;
-            color: #555;
+            color: #1261a1;
+            margin: 5px;
+            font-weight: bold;
+            border: 2px solid;
+            padding: 10px 20px;
+            box-shadow: 2px 2px #2196f3;
+            border-radius: 6px;
+            border-color: #2196f3;
         }
+
+        .line{
+            display: flex;
+            justify-content: flex;
+            align-items: center;
+            margin: 20px;
+        }
+        .upload{
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+            margin: 5px
+        }
+        .timer {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #1261a1;
+            margin: 5px;
+            font-weight: bold;
+            border: 2px solid;
+            padding: 10px 20px;
+            box-shadow: 2px 2px #2196f3;
+            border-radius: 6px;
+            border-color: #2196f3;
+        }
+
     </style>
 </head>
 <body>
-    <img id="sourceImage" loading="eager" src="boss.jpg" alt="Imagem" style="display:none;">
+   <input type="file" id="imageInput" accept="image/*" style="display: none;">
+   <img id="sourceImage" loading="eager" src="boss.webp" alt="Imagem" style="display:none;">
     <div class="container">
-        <div class="grid">
-        </div>
+        <div class="grid"></div>
     </div>
-    <button class="shuffle-button" id="shuffleButton">Sortear Estado Inicial</button>
+    <div class="line">
+        <button class="upload" id="uploadButton">Escolher Imagem</button> 
+        <button class="shuffle-button" id="shuffleButton">Sortear Estado Inicial</button>
     <div class="board-state" id="boardState">
         Estado atual: [1, 2, 3, 4, 5, 6, 7, 8, 0]
     </div>
@@ -109,6 +163,12 @@
     <div class="move-count" id="moveCount">
         Número de jogadas: 0
     </div>
+    <div class="timer" id="timer">
+       Tempo: 00:00 
+    </div>
+
+    </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const tiles = document.querySelectorAll('.tile');
@@ -118,6 +178,13 @@
             const moveCountDisplay = document.getElementById('moveCount');
             const shuffleButton = document.getElementById('shuffleButton');
             const img = document.getElementById('sourceImage');
+            const uploadButton = document.getElementById("uploadButton");
+            const imageInput = document.getElementById("imageInput");
+
+
+            uploadButton.addEventListener('click', () => {
+                imageInput.click();
+            });
 
             img.onload = () => {
                 const cellWidth = img.width / 3;
@@ -128,7 +195,6 @@
                 let boardState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
                 renderBoard()
                 let moveCount = 0;
-            
 
                 function createTile(number, isEmpty=false){
                     const tileCanvas = document.createElement('canvas');
@@ -181,7 +247,7 @@
                     inversionsDisplay.textContent = `Inversões: ${inversions} (Paridade: ${parity})`;
 
                     // Exibe o número de jogadas
-                    moveCountDisplay.textContent = `Número de jogadas: ${moveCount}`;
+                    moveCountDisplay.textContent = `Jogadas: ${moveCount}`;
                 }
 
                 function checkGoalState() {
