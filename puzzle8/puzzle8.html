@@ -158,6 +158,10 @@
 </head>
 <body>
    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+   <div>
+        <input type="text" id="resolveBoard" placeholder="Digite o seu tabuleiro: 0,1,2,3,4,5,6,7,8">
+        <button id="resolveButton">Começar</button>
+    </div>
    <img id="sourceImage" loading="eager" src="boss.webp" alt="Imagem" style="display:none;">
     <div class="container">
         <div class="grid"></div>
@@ -194,6 +198,7 @@
             const img = document.getElementById('sourceImage');
             const uploadButton = document.getElementById("uploadButton");
             const imageInput = document.getElementById("imageInput");
+            const resolveBoard = document.getElementById("resolveBoard");
 
             img.onload = () => {
                 let cellWidth = img.width / 3;
@@ -283,7 +288,7 @@
 
                 function checkGoalState() {
                     if (boardState.join(',') === goalState.join(',')) {
-                        alert(`Você resolveu o puzzle em ${moveCount} jogadas!`);
+                        alert(`Você resolveu o puzzle em ${moveCount} jogadas e no tempo de  ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}!`);
                     }
                 }
 
@@ -370,6 +375,12 @@
                     };
                     reader.readAsDataURL(file);
                 });
+
+                document.getElementById('resolveButton').addEventListener('click', () => {
+                boardState = resolveBoard.value.replace(" ", "").split(',').map(Number);
+                renderBoard();
+                updateDisplay();
+            });
 
                 function renderBackground() {
                     background.innerHTML = '';
