@@ -52,6 +52,7 @@
 
         .tile.empty {
             background-color: #f0f0f0;
+            opacity: 0.2;
             cursor: default;
             box-shadow: none;
         }
@@ -143,6 +144,16 @@
             border-color: #2196f3;
         }
 
+        .background {
+            display: grid;
+            grid-template-columns: repeat(3, 200px);
+            grid-template-rows: repeat(3, 200px);
+            gap: 5px;
+            position: absolute;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
     </style>
 </head>
 <body>
@@ -150,6 +161,7 @@
    <img id="sourceImage" loading="eager" src="boss.webp" alt="Imagem" style="display:none;">
     <div class="container">
         <div class="grid"></div>
+        <div class="background"></div>
     </div>
     <div class="line">
         <button class="upload" id="uploadButton">Escolher Imagem</button> 
@@ -174,6 +186,7 @@
             let start = false;
             const tiles = document.querySelectorAll('.tile');
             const grid = document.querySelector('.grid');
+            const background = document.querySelector('.background');
             const boardStateDisplay = document.getElementById('boardState');
             const inversionsDisplay = document.getElementById('inversionsCount');
             const moveCountDisplay = document.getElementById('moveCount');
@@ -189,7 +202,7 @@
                 const goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
 
                 let boardState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-                renderBoard()
+                
                 let moveCount = 0;
                 let timerInterval;
                 let minutes = 0;
@@ -214,7 +227,7 @@
                     document.getElementById('timer').textContent = `Tempo: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 }
 
-                function createTile(number, isEmpty=false){
+                function createTile(number, isEmpty=false) {
                     const tileCanvas = document.createElement('canvas');
                     const tileCtx = tileCanvas.getContext('2d');
                     tileCanvas.width = cellWidth;
@@ -222,14 +235,14 @@
                     tileCanvas.classList.add('tile');
                     if(isEmpty){
                         tileCanvas.classList.add('empty');
-                        return tileCanvas
+                        return tileCanvas;
                     }
                     const row = Math.floor((number - 1) / 3);
                     const col = (number - 1) % 3;
                     tileCtx.drawImage(img, col * cellWidth, row * cellHeight, cellWidth, cellHeight, 0, 0, cellWidth, cellHeight);
                     tileCanvas.dataset.value = number;
 
-                    return tileCanvas
+                    return tileCanvas;
                 }
 
                 function renderBoard() {
@@ -350,12 +363,26 @@
                             moveCount = 0;
                             boardState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
                             stopTimer()
+                            renderBackground()
                             renderBoard()
                             updateDisplay();
                         }
                     };
                     reader.readAsDataURL(file);
                 });
+
+                function renderBackground() {
+                    background.innerHTML = '';
+                    boardState.forEach((value, index) => {
+                        if(value === 0){
+                            background.appendChild(createTile(value, true));
+                        } else {
+                            background.appendChild(createTile(value));
+                        }
+                    });
+                }
+                renderBackground();
+                renderBoard();
             }
         });
     </script>
