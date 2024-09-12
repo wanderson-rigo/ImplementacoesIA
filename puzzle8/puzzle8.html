@@ -25,14 +25,14 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(3, 200px);
-            grid-template-rows: repeat(3, 200px);
+            grid-template-columns: repeat(3, 150px);
+            grid-template-rows: repeat(3, 150px);
             gap: 5px;
         }
 
         canvas {
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
             box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
         }
 
@@ -40,8 +40,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 200px;
-            height: 200px;
+            width: 150px;
+            height: 150px;
             background-color: #2196f3;
             color: white;
             font-size: 24px;
@@ -131,6 +131,11 @@
             box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
             margin: 5px
         }
+
+        .upload:hover {
+            background-color: #3594e2;
+        }
+
         .timer {
             margin-top: 20px;
             font-size: 16px;
@@ -146,21 +151,61 @@
 
         .background {
             display: grid;
-            grid-template-columns: repeat(3, 200px);
-            grid-template-rows: repeat(3, 200px);
+            grid-template-columns: repeat(3, 150px);
+            grid-template-rows: repeat(3, 150px);
             gap: 5px;
             position: absolute;
             z-index: -1;
             opacity: 0.2;
         }
 
+        .board{
+            display: flex;
+            justify-content: flex;
+            align-items: center;
+            margin: 20px;
+        }
+        .resolveButton{
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+            margin: 5px
+        }
+        .resolveButton:hover {
+            background-color: #3594e2;
+        }
+
+        .input{
+            width: 300px;
+            margin-top: 20px;
+            font-size: 16px;
+            color: #1261a1;
+            margin: 5px;
+            font-weight: bold;
+            border: 2px solid;
+            padding: 10px 20px;
+            box-shadow: 2px 2px #2196f3;
+            border-radius: 6px;
+            border-color: #2196f3;
+        }
+        .input:focus{
+            outline: none;
+            border: solid;
+            border-color: #2196f3;
+        }
+
     </style>
 </head>
 <body>
    <input type="file" id="imageInput" accept="image/*" style="display: none;">
-   <div>
-        <input type="text" id="resolveBoard" placeholder="Digite o seu tabuleiro: 0,1,2,3,4,5,6,7,8">
-        <button id="resolveButton">Começar</button>
+   <div class="board">
+        <input type="text" class="input" id="resolveBoard" placeholder="Digite o seu tabuleiro: 0,1,2,3,4,5,6,7,8">
+        <button class= "resolveButton" id="resolveButton">Começar</button>
     </div>
    <img id="sourceImage" loading="eager" src="boss.webp" alt="Imagem" style="display:none;">
     <div class="container">
@@ -378,8 +423,12 @@
 
                 document.getElementById('resolveButton').addEventListener('click', () => {
                 boardState = resolveBoard.value.replace(" ", "").split(',').map(Number);
-                renderBoard();
-                updateDisplay();
+                if(boardState.length === 9){
+                    renderBoard();
+                    updateDisplay();
+                }else{
+                    alert("Conjunto inválido!!!!")
+                }
             });
 
                 function renderBackground() {
