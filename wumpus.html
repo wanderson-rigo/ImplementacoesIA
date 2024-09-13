@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Wumpus World</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 50px);
+            grid-template-rows: repeat(4, 50px);
+            gap: 2px;
+            margin-bottom: 10px;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            font-size: 1.5em; /* Ajuste o tamanho do emoji */
+            position: relative;
+        }
+        .agent {
+            color: blue;
+            z-index: 2; /* Agente está sobre os outros */
+        }
+        .wumpus {
+            color: brown;
+            z-index: 1; /* Wumpus está abaixo do agente */
+        }
+        .pit {
+            color: gray;
+            z-index: 1; /* Buracos estão abaixo do agente */
+        }
+        .gold {
+            color: gold;
+            z-index: 1; /* Ouro está abaixo do agente */
+        }
+        .odor {
+            color: lightyellow;
+            z-index: 0; /* Fedor está abaixo do agente */
+        }
+        .hidden {
+            visibility: hidden; /* Esconde o conteúdo */
+        }
+        .controls {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <button id="reset-button">Reiniciar</button>
+    <button id="toggle-button">Esconder/Revelar</button>
+</div>
+
+<div id="game-container"></div>
+
+<script>
+    const SIZE = 4;
+    const EMPTY = 0;
+    const AGENT = 1;
+    const WUMPUS = 2;
+    const PIT = 3;
+    const GOLD = 4;
+    const ODOR = 5;
+
+    let agentPosition = { x: 0, y: 0 };
+    let wumpusPosition = { x: Math.floor(Math.random() * SIZE), y: Math.floor(Math.random() * SIZE) };
+    let pitPositions = Array.from({ length: 3 }, () => ({ x: Math.floor(Math.random() * SIZE), y: Math.floor(Math.random() * SIZE) }));
+    let goldPosition = { x: Math.floor(Math.random() * SIZE), y: Math.floor(Math.random() * SIZE) };
+
+    const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(EMPTY));
+    grid[agentPosition.y][agentPosition.x] = AGENT;
+    grid[wumpusPosition.y][wumpusPosition.x] = WUMPUS;
+    grid[goldPosition.y][goldPosition.x] = GOLD;
+    pitPositions.forEach(pit => grid[pit.y][pit.x] = PIT);
+
+    const container = document.getElementById('game-container');
+
+    function updateOdor() {
+        // Clear previous odors
+        grid.forEach((row, y) => {
+            row.forEach((cell, x) => {
+                if (cell === ODOR) grid[y][x] = EMPTY;
+            });
+        });
+
+        // Set odor around Wumpus
+        const directions = [
+            { x: 0, y: -1 }, // Up
+            { x: 0, y: 1 },  // Down
+            { x: -1, y: 0 }, // Left
+            { x: 1, y: 0 }   // Right
+        ];
+
+        directions.forEach(dir => {
+            const newX = wumpusPosition.x + dir.x;
+            const newY = wumpusPosition.y + dir.y;
+            if (newX >= 0 && newX < SIZE && newY >= 0 && newY < SIZE) {
+                grid[newY][newX] = ODOR;
+            }
+        });
+    }
+
+    function renderGrid(hidden = false) {
+        container.innerHTML = '';
+        grid.forEach((row, y) => {
+            row.forEach((cell, x) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell';
+                if (cell === AGENT) {
+                    cellDiv.classList.add('agent');
+                    cellDiv.textContent = '🤖'; // Emoji para o agente
+                } else if (hidden && cell !== AGENT) {
+                    cellDiv.classList.add('hidden');
+                } else if (cell === WUMPUS) {
+                    cellDiv.classList.add('wumpus');
+                    cellDiv.textContent = '🐉'; // Emoji para o Wumpus
+                } else if (cell === PIT) {
+                    cellDiv.classList.add('pit');
+                    cellDiv.textContent = '🕳️'; // Emoji para o buraco
+                } else if (cell === GOLD) {
+                    cellDiv.classList.add('gold');
+                    cellDiv.textContent = '💰'; // Emoji para o ouro
+                } else if (cell === ODOR) {
+                    cellDiv.classList.add('odor');
+                    cellDiv.textContent = '🌫️'; // Emoji para o fedor
+                }
+                container.appendChild(cellDiv);
+            });
+        });
+    }
+
+    function moveAgent(dx, dy) {
+        const newX = agentPosition.x + dx;
+        const newY = agentPosition.y + dy;
+        if (newX >= 0 && newX < SIZE && newY >= 0 && newY < SIZE) {
+            grid[agentPosition.y][agentPosition.x] = EMPTY;
+            agentPosition.x = newX;
+            agentPosition.y = newY;
+            grid[agentPosition.y][agentPosition.x] = AGENT;
+
+            if (agentPosition.x === wumpusPosition.x && agentPosition.y === wumpusPosition.y) {
+                alert('Você encontrou o Wumpus! Fim de jogo.');
+                resetGame();
+            } else if (pitPositions.some(pit => pit.x === agentPosition.x && pit.y === agentPosition.y)) {
+                alert('Você caiu em um buraco! Fim de jogo.');
+                resetGame();
+            } else if (agentPosition.x === goldPosition.x && agentPosition.y === goldPosition.y) {
+                alert('Você encontrou o Ouro! Parabéns!');
+                resetGame();
+            } else {
+                updateOdor();
+                renderGrid(hidden);
+            }
+        }
+    }
+
+    function resetGame() {
+        agentPosition = { x: 0, y: 0 };
+        wumpusPosition = { x: Math.floor(Math.random() * SIZE), y: Math.floor(Math.random() * SIZE) };
+        pitPositions = Array.from({ length: 3 }, () => ({ x: Math.floor(Math.random() * SIZE), y: Math.floor(Math.random() * SIZE) }));
+        goldPosition = { x: Math.floor(Math.random() * SIZE), y: Math.floor(Math.random() * SIZE) };
+
+        grid.forEach(row => row.fill(EMPTY));
+        grid[agentPosition.y][agentPosition.x] = AGENT;
+        grid[wumpusPosition.y][wumpusPosition.x] = WUMPUS;
+        grid[goldPosition.y][goldPosition.x] = GOLD;
+        pitPositions.forEach(pit => grid[pit.y][pit.x] = PIT);
+
+        updateOdor();
+        renderGrid(hidden);
+    }
+
+    let hidden = false;
+
+    document.addEventListener('keydown', (e) => {
+        switch (e.key) {
+            case 'ArrowUp':
+                moveAgent(0, -1);
+                break;
+            case 'ArrowDown':
+                moveAgent(0, 1);
+                break;
+            case 'ArrowLeft':
+                moveAgent(-1, 0);
+                break;
+            case 'ArrowRight':
+                moveAgent(1, 0);
+                break;
+        }
+    });
+
+    document.getElementById('reset-button').addEventListener('click', resetGame);
+    document.getElementById('toggle-button').addEventListener('click', () => {
+        hidden = !hidden;
+        renderGrid(hidden);
+    });
+
+    renderGrid(hidden);
+</script>
+
+</body>
+</html>
