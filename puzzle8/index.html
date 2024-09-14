@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <!-- Metadados -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8-Puzzle com IA</title>
+  <!-- Importa o CSS externo -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+  <!-- Título principal -->
+  <h1>8-Puzzle com IA</h1>
+
+  <!-- Container principal do jogo -->
+  <div class="container">
+    <div class="grid">
+      <!-- Peças do puzzle -->
+      <div class="tile" data-value="1">1</div>
+      <div class="tile" data-value="2">2</div>
+      <div class="tile" data-value="3">3</div>
+      <div class="tile" data-value="4">4</div>
+      <div class="tile" data-value="5">5</div>
+      <div class="tile" data-value="6">6</div>
+      <div class="tile" data-value="7">7</div>
+      <div class="tile" data-value="8">8</div>
+      <div class="tile empty" data-value="0"></div>
+    </div>
+  </div>
+
+  <!-- Botões de controle -->
+  <button class="shuffle-button" id="shuffleButton">Sortear Estado Inicial</button>
+  <button class="solve-button" id="solveButton">Resolver com A*</button>
+  <button class="solve-button" id="solveButtonBFS">Resolver com BFS</button>
+
+  <!-- Exibição de informações -->
+  <div class="board-state" id="boardState">
+    Estado atual: [1, 2, 3, 4, 5, 6, 7, 8, 0]
+  </div>
+  <div class="inversions" id="inversionsCount">
+    Inversões: 0 (Paridade: par)
+  </div>
+  <div class="manhattan-distance" id="manhattanDistance">
+    Distância Manhattan: 0
+  </div>
+  <div class="misplaced-tiles" id="misplacedTiles">
+    Peças fora do lugar: 0
+  </div>
+  <div class="move-count" id="moveCount">
+    Número de jogadas: 0
+  </div>
+
+  <!-- Entrada para estado personalizado -->
+  <div class="custom-state">
+    <input type="text" id="customStateInput" placeholder="Insira o estado (ex: 1,2,3,4,5,6,7,8,0)">
+    <button id="setCustomStateButton">Definir Estado Personalizado</button>
+  </div>
+
+  <!-- Log de trocas realizadas -->
+  <div class="swap-log" id="swapLog">
+    Trocas realizadas:
+  </div>
+
+  <!-- Importa o JavaScript externo -->
+  <script src="js/script.js"></script>
+</body>
+
+</html>
