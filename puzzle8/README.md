@@ -45,7 +45,7 @@ Ou baixe o arquivo ZIP e extraia em uma pasta local.
 
 3. **Abra o Arquivo `index.html`**:
 
-- Navegue até a pasta do projeto e abra o arquivo `index.html` em seu navegador.
+   - Navegue até a pasta do projeto e abra o arquivo `index.html` em seu navegador.
 
 ## Estrutura do Projeto
 
