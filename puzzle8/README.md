@@ -37,7 +37,7 @@ Este projeto implementa o jogo **8-Puzzle** utilizando algoritmos de busca em In
 
 2. **Clone ou Baixe o Repositório**:
 ```bash
-git clone https://github.com/thalesfb/AI/puzzle8.git
+git clone https://github.com/thalesfb/AI.git
 ```
 Ou baixe o arquivo ZIP e extraia em uma pasta local.
 
