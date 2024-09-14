@@ -32,13 +32,15 @@ Este projeto implementa o jogo **8-Puzzle** utilizando algoritmos de busca em In
 ## Como Executar o Projeto
 
 1. **Pré-requisitos**:
+
    - Um navegador web moderno (Chrome, Firefox, Edge, etc.).
-   - Node.js e npm instalados (apenas se for executar testes automatizados com Jest).
 
 2. **Clone ou Baixe o Repositório**:
+
 ```bash
 git clone https://github.com/thalesfb/AI.git
 ```
+
 Ou baixe o arquivo ZIP e extraia em uma pasta local.
 
 3. **Abra o Arquivo `index.html`**: Navegue até a pasta do projeto e abra o arquivo `index.html` em seu navegador.
@@ -49,7 +51,7 @@ Ou baixe o arquivo ZIP e extraia em uma pasta local.
 puzzle8/
 ├── css/
 │ └── styles.css
-├── js/ 
+├── js/
 │ └── script.js
 ├── index.html
 ├── README.md
@@ -63,23 +65,23 @@ puzzle8/
 ## Como Usar
 
 - **Movimentação Manual**:
-Clique em uma peça adjacente ao espaço vazio para movê-la.
-Observe as informações atualizadas, como o número de jogadas e peças fora do lugar.
+  Clique em uma peça adjacente ao espaço vazio para movê-la.
+  Observe as informações atualizadas, como o número de jogadas e peças fora do lugar.
 - **Embaralhar o Tabuleiro**:
-Clique em "Sortear Estado Inicial" para gerar um novo desafio.
+  Clique em "Sortear Estado Inicial" para gerar um novo desafio.
 - **Estado Personalizado**:
-Insira uma sequência de números de 0 a 8 separados por vírgulas no campo apropriado.
-Clique em "Definir Estado Personalizado" para atualizar o tabuleiro.
+  Insira uma sequência de números de 0 a 8 separados por vírgulas no campo apropriado.
+  Clique em "Definir Estado Personalizado" para atualizar o tabuleiro.
 - **Resolução Automática**:
-Clique em "Resolver com A*" ou "Resolver com BFS" para que o algoritmo resolva o puzzle.
-O progresso e as trocas serão exibidos, juntamente com métricas de desempenho.
+  Clique em "Resolver com A\*" ou "Resolver com BFS" para que o algoritmo resolva o puzzle.
+  O progresso e as trocas serão exibidos, juntamente com métricas de desempenho.
 
-## **Testes**
+## Testes
 
 - **Testes Manuais**: Interaja com o jogo para garantir que as funcionalidades funcionem conforme o esperado.
 - **Testes Automatizados**: Ainda não implementados. Futuramente, podemos adicionar testes unitários utilizando frameworks como Jest para testar as funções JavaScript.
 
-## **Possíveis Melhorias Futuras**
+## Possíveis Melhorias Futuras
 
 - Implementar testes automatizados para garantir a corretude dos algoritmos.
 - Adicionar outros algoritmos de busca, como **Busca Gulosa** ou **Busca em Profundidade Limitada**.
@@ -87,11 +89,10 @@ O progresso e as trocas serão exibidos, juntamente com métricas de desempenho.
 - Otimizar o desempenho dos algoritmos para estados iniciais mais complexos.
 - Adicionar suporte a dispositivos móveis com layout responsivos.
 
-## **Licença**
+## Licença
 
 Este projeto é de uso livre para fins educacionais e não possui uma licença específica.
 
-## **Autor**
+## Autor
 
-- **Thales Ferreira** - *Desenvolvedor* - [thalesfb](https://github.com/thalesfb)
-
+- **Thales Ferreira** - _Desenvolvedor_ - [thalesfb](https://github.com/thalesfb)
