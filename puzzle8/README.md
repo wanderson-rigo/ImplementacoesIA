@@ -45,6 +45,7 @@ Ou baixe o arquivo ZIP e extraia em uma pasta local.
 
 ## Estrutura do Projeto
 
+```plaintext
 puzzle8/
 ├── css/
 │ └── styles.css
@@ -52,6 +53,7 @@ puzzle8/
 │ └── script.js
 ├── index.html
 ├── README.md
+```
 
 - **css/styles.css**: Estilos CSS para a interface do usuário.
 - **js/script.js**: Lógica do jogo e implementação dos algoritmos de busca.
