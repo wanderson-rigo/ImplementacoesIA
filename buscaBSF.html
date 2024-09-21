@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de Estratégias de Busca - BFS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+        }
+        .left-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 70%;
+        }
+        .right-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .graph {
+            display: inline-block;
+            margin: 0 auto;
+        }
+        .node {
+            fill: #4CAF50;
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        .node.visited {
+            fill: #FF5722;
+        }
+        .node.expanded {
+            stroke: #FFD700;
+            stroke-width: 4px;
+        }
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+        #path-display, #adjacency-list, #fringe-display {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .fringe-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .fringe-label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .fringe-display {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            white-space: nowrap;
+            border: 1px solid #000;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+            height: 50px;
+        }
+        .fringe-item {
+            margin: 0 5px;
+            padding: 5px;
+            border: 1px solid #000;
+            border-radius: 3px;
+            background-color: #e0e0e0;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="left-container">
+    <h1>Visualização de Busca em Largura (BFS)</h1>
+
+    <div class="controls">
+        <label for="start-node">Nó de Início:</label>
+        <select id="start-node">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+            <option value="G">G</option>
+            <option value="H">H</option>
+            <option value="I">I</option>
+            <option value="J">J</option>
+        </select>
+        
+        <button onclick="startSearch()">Iniciar Busca</button>
+        <button id="next-button" onclick="nextStep()" disabled>Next</button>
+    </div>
+
+    <svg class="graph" width="800" height="400"></svg>
+    <div id="esquerda">
+        <div id="path-display">Caminho Percorrido: </div>
+        <div id="adjacency-list">Lista de Adjacência: </div>
+        <div class="fringe-container">
+            <div class="fringe-label">Fringe:</div>
+            <div id="fringe-display" class="fringe-display"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+const nodes = [
+    {id: 'A', level: 0, x: 400, y: 50},
+    {id: 'B', level: 1, x: 200, y: 150},
+    {id: 'C', level: 1, x: 600, y: 150},
+    {id: 'D', level: 2, x: 100, y: 250},
+    {id: 'E', level: 2, x: 300, y: 250},
+    {id: 'F', level: 2, x: 500, y: 250},
+    {id: 'G', level: 2, x: 700, y: 250},
+    {id: 'H', level: 3, x: 50, y: 350},
+    {id: 'I', level: 3, x: 150, y: 350},
+    {id: 'J', level: 3, x: 250, y: 350},
+    {id: 'K', level: 3, x: 350, y: 350},
+    {id: 'L', level: 3, x: 450, y: 350},
+    {id: 'M', level: 3, x: 550, y: 350},
+    {id: 'N', level: 3, x: 650, y: 350},
+    {id: 'O', level: 3, x: 750, y: 350}
+];
+
+const links = [
+    {source: 'A', target: 'B'}, {source: 'A', target: 'C'},
+    {source: 'B', target: 'D'}, {source: 'B', target: 'E'},
+    {source: 'C', target: 'F'}, {source: 'C', target: 'G'},
+    {source: 'D', target: 'H'}, {source: 'D', target: 'I'},
+    {source: 'E', target: 'J'}, {source: 'E', target: 'K'},
+    {source: 'F', target: 'L'}, {source: 'F', target: 'M'},
+    {source: 'G', target: 'N'}, {source: 'G', target: 'O'}
+];
+
+const svg = d3.select('.graph');
+const width = +svg.attr('width');
+const height = +svg.attr('height');
+
+const link = svg.append('g')
+    .selectAll('line')
+    .data(links)
+    .enter().append('line')
+    .attr('class', 'link')
+    .attr('x1', d => nodes.find(n => n.id === d.source).x)
+    .attr('y1', d => nodes.find(n => n.id === d.source).y)
+    .attr('x2', d => nodes.find(n => n.id === d.target).x)
+    .attr('y2', d => nodes.find(n => n.id === d.target).y);
+
+const node = svg.append('g')
+    .selectAll('circle')
+    .data(nodes)
+    .enter().append('circle')
+    .attr('class', 'node')
+    .attr('r', 20)
+    .attr('cx', d => d.x)
+    .attr('cy', d => d.y)
+    .call(d3.drag()
+        .on('start', dragstarted)
+        .on('drag', dragged)
+        .on('end', dragended));
+
+const label = svg.append('g')
+    .selectAll('text')
+    .data(nodes)
+    .enter().append('text')
+    .attr('dy', 5)
+    .attr('x', d => d.x)
+    .attr('y', d => d.y)
+    .text(d => d.id);
+
+function dragstarted(event, d) {
+    if (!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = d.x;
+    d.fy = d.y;
+}
+
+function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+}
+
+function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null;
+}
+
+let searchQueue = [];
+let visited = new Set();
+let currentPath = [];
+
+function bfs(startNode) {
+    searchQueue = [startNode];
+    visited.clear();
+    currentPath = [];
+}
+
+async function nextStep() {
+    if (searchQueue.length === 0) {
+        document.getElementById('next-button').disabled = true;
+        return;
+    }
+
+    let nodeId = searchQueue.shift(); // BFS: Remove o nó do início da fila
+
+    if (!visited.has(nodeId)) {
+        visited.add(nodeId);
+        currentPath.push(nodeId);
+        await highlightNode(nodeId, currentPath);
+
+        let neighbors = links.filter(l => l.source === nodeId || l.target === nodeId)
+                             .map(l => l.source === nodeId ? l.target : l.source)
+                             .filter(n => !visited.has(n));
+
+        searchQueue.push(...neighbors); // BFS: Adiciona vizinhos ao final da fila
+
+        // Atualiza a fringe
+        await updateFringeDisplay();
+    }
+
+    if (searchQueue.length === 0) {
+        document.getElementById('next-button').disabled = true;
+    }
+}
+
+async function updateFringeDisplay() {
+    const fringeDisplay = document.getElementById('fringe-display');
+    const currentItems = searchQueue.map(n => `<div class="fringe-item">${n}</div>`).join('');
+    fringeDisplay.innerHTML = currentItems;
+}
+
+async function highlightNode(nodeId, currentPath) {
+    svg.selectAll('circle').filter(d => d.id === nodeId)
+        .classed('visited', true)
+        .classed('expanded', true);
+
+    // Atualiza o display do caminho
+    document.getElementById('path-display').innerHTML = `Caminho Percorrido: ${currentPath.join(' -> ')}`;
+}
+
+function startSearch() {
+    const startNode = document.getElementById('start-node').value;
+    bfs(startNode);
+    document.getElementById('next-button').disabled = false;
+
+    // Limpa o gráfico
+    svg.selectAll('circle').classed('visited', false).classed('expanded', false);
+
+    // Atualiza a fringe e o caminho
+    document.getElementById('path-display').innerHTML = 'Caminho Percorrido: ';
+    document.getElementById('fringe-display').innerHTML = '';
+}
+</script>
+</body>
+</html>
