@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação de Busca de Custo Uniforme com D3.js</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        #graph {
+            border: 1px solid black;
+            width: 500px;
+            height: 300px;
+            position: relative;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        .active {
+            fill: lightblue !important;
+        }
+
+        .target {
+            fill: lightgreen !important;
+        }
+
+        .link {
+            fill: none;
+            stroke: black;
+            stroke-width: 2px;
+        }
+
+        .edge-label {
+            font-size: 12px;
+            background-color: white;
+            border: 1px solid black;
+            border-radius: 3px;
+            padding: 2px;
+        }
+
+        .priority-queue {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .queue-item {
+            background-color: lightgray;
+            padding: 5px;
+            margin: 2px;
+            border: 1px solid black;
+            width: 80px;
+            text-align: center;
+        }
+
+        #nextButton {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Simulação da Busca de Custo Uniforme com D3.js</h1>
+<div id="graph"></div>
+
+<div class="priority-queue" id="priorityQueue"></div>
+<button id="nextButton" onclick="nextStep()">Próximo</button>
+
+<script>
+    const graphData = {
+        nodes: [
+            { id: 'A', x: 100, y: 150 },
+            { id: 'B', x: 300, y: 100 },
+            { id: 'C', x: 200, y: 50 },
+            { id: 'D', x: 400, y: 150 }
+        ],
+        links: [
+            { source: 'A', target: 'B', weight: 2 },
+            { source: 'A', target: 'C', weight: 1 },
+            { source: 'B', target: 'D', weight: 3 },
+            { source: 'C', target: 'D', weight: 1 }
+        ]
+    };
+
+    let queue = [{ node: 'A', cost: 0 }];
+    const visited = new Set();
+    const target = 'D';
+    let currentStep = 0;
+
+    const svg = d3.select("#graph").append("svg")
+        .attr("width", 500)
+        .attr("height", 300);
+
+    // Criação das arestas (links)
+    const link = svg.selectAll(".link")
+        .data(graphData.links)
+        .enter().append("line")
+        .attr("class", "link")
+        .attr("x1", d => graphData.nodes.find(n => n.id === d.source).x)
+        .attr("y1", d => graphData.nodes.find(n => n.id === d.source).y)
+        .attr("x2", d => graphData.nodes.find(n => n.id === d.target).x)
+        .attr("y2", d => graphData.nodes.find(n => n.id === d.target).y);
+
+    // Criação dos rótulos das arestas (weights)
+    svg.selectAll(".edge-label")
+        .data(graphData.links)
+        .enter().append("text")
+        .attr("class", "edge-label")
+        .attr("x", d => (graphData.nodes.find(n => n.id === d.source).x + graphData.nodes.find(n => n.id === d.target).x) / 2)
+        .attr("y", d => (graphData.nodes.find(n => n.id === d.source).y + graphData.nodes.find(n => n.id === d.target).y) / 2)
+        .text(d => d.weight);
+
+    // Criação dos nós (nodes)
+    const node = svg.selectAll(".node")
+        .data(graphData.nodes)
+        .enter().append("circle")
+        .attr("class", "node")
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y)
+        .attr("r", 20)
+        .style("fill", "white")
+        .on("mouseover", function () {
+            d3.select(this).style("fill", "lightgray");
+        })
+        .on("mouseout", function () {
+            d3.select(this).style("fill", "white");
+        });
+
+    // Rótulos dos nós
+    svg.selectAll(".node-label")
+        .data(graphData.nodes)
+        .enter().append("text")
+        .attr("class", "node-label")
+        .attr("x", d => d.x)
+        .attr("y", d => d.y)
+        .attr("dy", 5)
+        .attr("text-anchor", "middle")
+        .text(d => d.id);
+
+    function updateQueueDisplay() {
+        const priorityQueueDiv = document.getElementById('priorityQueue');
+        priorityQueueDiv.innerHTML = '';
+        queue.forEach(item => {
+            const queueItem = document.createElement('div');
+            queueItem.className = 'queue-item';
+            queueItem.innerText = `${item.node}: ${item.cost}`;
+            priorityQueueDiv.appendChild(queueItem);
+        });
+    }
+
+    function highlightNode(nodeId, className) {
+        d3.selectAll(".node").filter(d => d.id === nodeId).classed(className, true);
+    }
+
+    function nextStep() {
+        if (currentStep === queue.length) return; // Se não houver mais passos
+
+        // Ordena a fila por custo
+        queue.sort((a, b) => a.cost - b.cost);
+        const current = queue.shift();
+
+        highlightNode(current.node, 'active');
+        updateQueueDisplay();
+
+        // Verifica se o nó atual é o alvo
+        if (current.node === target) {
+            highlightNode(current.node, 'target');
+            document.getElementById('nextButton').disabled = true; // Desabilita o botão
+            return;
+        }
+
+        visited.add(current.node);
+
+        // Adiciona nós adjacentes à fila
+        for (const link of graphData.links.filter(link => link.source === current.node)) {
+            if (!visited.has(link.target)) {
+                const targetNode = link.target;
+                const weight = link.weight;
+                const existingNode = queue.find(item => item.node === targetNode);
+                
+                const newCost = current.cost + weight; // Custo total para chegar ao nó alvo
+
+                // Se o nó já está na fila, atualiza seu custo se for menor
+                if (existingNode) {
+                    if (newCost < existingNode.cost) {
+                        existingNode.cost = newCost;
+                    }
+                } else {
+                    queue.push({ node: targetNode, cost: newCost });
+                }
+            }
+        }
+
+        currentStep++;
+        updateQueueDisplay();
+    }
+
+    // Inicializa a exibição da fila
+    updateQueueDisplay();
+</script>
+
+</body>
+</html>

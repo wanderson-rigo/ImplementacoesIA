@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UCS com Exploração Paralela</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+        }
+        .left-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: 70%;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .graph {
+            display: inline-block;
+            margin: 0 auto;
+        }
+        .node {
+            fill: #4CAF50;
+            stroke: #000;
+            stroke-width: 2px;
+        }
+        .node.visited {
+            fill: #FF5722;
+        }
+        .node.expanded {
+            stroke: #FFD700;
+            stroke-width: 4px;
+        }
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+        .cost-label {
+            fill: black;
+            font-size: 12px;
+        }
+        #path-display, #fringe-display, #explored-display {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .fringe-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .fringe-label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .fringe-display, .explored-display {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            white-space: nowrap;
+            border: 1px solid #000;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+            height: 50px;
+        }
+        .fringe-item, .explored-item {
+            margin: 0 5px;
+            padding: 5px;
+            border: 1px solid #000;
+            border-radius: 3px;
+            background-color: #e0e0e0;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="left-container">
+    <h1>Busca de Custo Uniforme (UCS) com Exploração Paralela</h1>
+
+    <div class="controls">
+        <label for="start-node">Nó de Início:</label>
+        <select id="start-node">
+            <option value="V1">V1</option>
+            <option value="V2">V2</option>
+            <option value="V3">V3</option>
+            <option value="V4">V4</option>
+            <option value="V5">V5</option>
+            <option value="V6">V6</option>
+        </select>
+
+        <label for="goal-node">Nó Meta:</label>
+        <select id="goal-node">
+            <option value="V1">V1</option>
+            <option value="V2">V2</option>
+            <option value="V3">V3</option>
+            <option value="V4">V4</option>
+            <option value="V5">V5</option>
+            <option value="V6" selected>V6</option>
+        </select>
+
+        <button onclick="startSearch()">Iniciar Busca</button>
+        <button id="next-button" onclick="nextStep()" disabled>Próximo</button>
+    </div>
+
+    <svg class="graph" width="800" height="400"></svg>
+    
+    <div id="esquerda">
+        <div id="path-display">Caminho Percorrido: </div>
+        <div class="fringe-container">
+            <div class="fringe-label">Fringe (início):</div>
+            <div id="fringe-display" class="fringe-display"></div>
+        </div>
+        <div class="fringe-container">
+            <div class="fringe-label">Nós Explorados:</div>
+            <div id="explored-display" class="explored-display"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script>
+const nodes = [
+    {id: 'V1', level: 0, x: 100, y: 100},
+    {id: 'V2', level: 1, x: 300, y: 50},
+    {id: 'V3', level: 1, x: 300, y: 150},
+    {id: 'V4', level: 2, x: 500, y: 50},
+    {id: 'V5', level: 2, x: 500, y: 150},
+    {id: 'V6', level: 3, x: 700, y: 100}
+];
+
+const links = [
+    {source: 'V1', target: 'V2', cost: 9},
+    {source: 'V1', target: 'V3', cost: 4},
+    {source: 'V2', target: 'V4', cost: 7},
+    {source: 'V2', target: 'V3', cost: 2},
+    {source: 'V2', target: 'V5', cost: 3},
+    {source: 'V3', target: 'V4', cost: 1},
+    {source: 'V3', target: 'V5', cost: 6},
+    {source: 'V4', target: 'V5', cost: 4},
+    {source: 'V4', target: 'V6', cost: 8},
+    {source: 'V5', target: 'V6', cost: 2}
+];
+
+const svg = d3.select('.graph');
+const width = +svg.attr('width');
+const height = +svg.attr('height');
+
+// Adicionar arestas ao grafo
+const link = svg.append('g')
+    .selectAll('line')
+    .data(links)
+    .enter().append('line')
+    .attr('class', 'link')
+    .attr('x1', d => nodes.find(n => n.id === d.source).x)
+    .attr('y1', d => nodes.find(n => n.id === d.source).y)
+    .attr('x2', d => nodes.find(n => n.id === d.target).x)
+    .attr('y2', d => nodes.find(n => n.id === d.target).y)
+    .attr('stroke-width', 2)
+    .attr('stroke', '#999');
+
+// Display cost on the edges
+svg.append('g')
+    .selectAll('text')
+    .data(links)
+    .enter().append('text')
+    .attr('x', d => (nodes.find(n => n.id === d.source).x + nodes.find(n => n.id === d.target).x) / 2)
+    .attr('y', d => (nodes.find(n => n.id === d.source).y + nodes.find(n => n.id === d.target).y) / 2)
+    .attr('class', 'label')
+    .text(d => d.cost);
+
+// Add nodes (circles)
+svg.append('g')
+    .selectAll('circle')
+    .data(nodes)
+    .enter().append('circle')
+    .attr('class', 'node')
+    .attr('r', 20)
+    .attr('cx', d => d.x)
+    .attr('cy', d => d.y)
+    .attr('fill', '#4CAF50')
+    .attr('stroke', '#000')
+    .attr('stroke-width', 2);
+
+// Add labels to nodes
+svg.append('g')
+    .selectAll('text.node-label')
+    .data(nodes)
+    .enter().append('text')
+    .attr('class', 'node-label')
+    .attr('x', d => d.x)
+    .attr('y', d => d.y)
+    .attr('dy', 5)
+    .attr('text-anchor', 'middle')
+    .text(d => d.id);
+
+let fringe = [];
+let visited = new Set();
+let path = [];
+let parentMap = {};
+let goalNode = null;
+
+function startSearch() {
+    visited = new Set();
+    fringe = [];
+    path = [];
+    parentMap = {};
+
+    const startNode = document.getElementById('start-node').value;
+    goalNode = document.getElementById('goal-node').value;
+
+    fringe.push({node: startNode, cost: 0});
+    parentMap[startNode] = null;
+
+    document.getElementById('path-display').textContent = 'Caminho Percorrido: ';
+    document.getElementById('fringe-display').innerHTML = '';
+    document.getElementById('explored-display').innerHTML = '';
+    
+    updateFringe();
+    document.getElementById('next-button').disabled = false;
+}
+
+function nextStep() {
+    if (fringe.length === 0) {
+        alert("Fringe está vazia. Busca completa ou falhou.");
+        return;
+    }
+
+    //let fringeString0 = fringe.map(item => `Nó ${item.node}, Custo: ${item.cost}`).join('\n');
+    //alert("antes de ordenar = \n" + fringeString0);
+
+    fringe.sort((a, b) => a.cost - b.cost);
+
+    //let fringeString1 = fringe.map(item => `Nó ${item.node}, Custo: ${item.cost}`).join('\n');
+    //alert("Ordenado = \n" + fringeString1);
+
+    updateFringe();
+
+    const current = fringe.shift();
+    const {node, cost} = current;
+
+    alert("Removendo " + node + " com custo " + cost);
+
+    if (visited.has(node)) {
+        nextStep();
+        return;
+    }
+
+    visited.add(node);
+    svg.selectAll('circle.node')
+        .filter(d => d.id === node)
+        .classed('visited', true)
+        .classed('expanded', true); // Pode ser mantido separado, se desejado
+
+    updateExploredNodes();
+
+    path.push(node);
+    document.getElementById('path-display').textContent = 'Caminho Percorrido: ' + path.join(' -> ');
+
+    if (node === goalNode) {
+        alert(`Objetivo ${goalNode} alcançado com custo total de ${cost}!`);
+        document.getElementById('next-button').disabled = true;
+        return;
+    }
+links.forEach(link => {
+    if (link.source === node && !visited.has(link.target)) {
+        const newCost = cost + link.cost;
+
+        // Verifica se o nó já está na fringe
+        const existingNode = fringe.find(item => item.node === link.target);
+        if (!existingNode || newCost < existingNode.cost) {
+            if (existingNode) {
+                // Se o nó já existe, remova-o da fringe
+                fringe = fringe.filter(item => item.node !== link.target);
+            }
+            alert("Adicionando " + link.target + " com custo " + newCost);
+            fringe.push({node: link.target, cost: newCost});
+            parentMap[link.target] = node;
+        }
+    }
+});
+
+    updateFringe();
+}
+
+function updateFringe() {
+    const fringeDisplay = document.getElementById('fringe-display');
+    fringeDisplay.innerHTML = '';
+    
+    fringe.sort((a, b) => a.cost - b.cost);
+    
+    fringe.forEach(item => {
+        const fringeItem = document.createElement('div');
+        fringeItem.classList.add('fringe-item');
+        fringeItem.textContent = `${item.node} (custo: ${item.cost})`;
+        fringeDisplay.appendChild(fringeItem);
+    });
+}
+
+function updateExploredNodes() {
+    const exploredDisplay = document.getElementById('explored-display');
+    exploredDisplay.innerHTML = '';
+    visited.forEach(node => {
+        const exploredItem = document.createElement('div');
+        exploredItem.classList.add('explored-item');
+        exploredItem.textContent = node;
+        exploredDisplay.appendChild(exploredItem);
+    });
+}
+</script>
+</body>
+</html>
