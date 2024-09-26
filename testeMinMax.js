@@ -40,9 +40,9 @@ function minMax(board, depth, isMaximizing, alpha, beta) {
     }
 
     if(isMaximizing){
-        max_eval = -Infinity;
-        for(child in get_children(board, 'X')){
-            eval = minMax(child, depth - 1, false, alpha, beta);
+        let max_eval = -Infinity;
+        for(let child of get_children(board, 'X')){
+            let eval = minMax(child, depth - 1, false, alpha, beta);
             max_eval = Math.max(max_eval, eval);
             alpha = Math.max(alpha, eval);
             if(beta <= alpha){
@@ -51,9 +51,9 @@ function minMax(board, depth, isMaximizing, alpha, beta) {
         }
         return max_eval
     }else {
-        min_eval = Infinity;
-        for(child in get_children(board, 'O')){
-            eval = minMax(child, depth - 1, true, alpha, beta);
+        let min_eval = Infinity;
+        for(let child of get_children(board, 'O')){
+            let eval = minMax(child, depth - 1, true, alpha, beta);
             min_eval = Math.min(min_eval, eval);
             beta = Math.min(beta, eval);
             if(beta <= alpha){
@@ -87,7 +87,7 @@ function simulateGame() {
             
             const children = get_children(board, "X");
             for (let child of children) {
-                const score = minMax(child, 0, false, -Infinity, Infinity);
+                const score = minMax(child, 9, false, -Infinity, Infinity);
                 if (score > bestScore) {
                     bestScore = score;
                     bestMove = child;
@@ -95,13 +95,13 @@ function simulateGame() {
             }
             board = bestMove;
         } else {
-            let worstScore = -Infinity;
+            let worstScore = Infinity;
             let bestMove;
             
             const children = get_children(board, 'O');
             for (let child of children) {
-                const score = minMax(child, 0, true, -Infinity, Infinity);
-                if (score > worstScore) {
+                const score = minMax(child, 9, true, -Infinity, Infinity);
+                if (score < worstScore) {
                     worstScore = score;
                     bestMove = child;
                 }
