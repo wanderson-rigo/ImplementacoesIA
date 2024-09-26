@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Velha com Minimax</title>
+    <title>Jogo da Velha com Minimax David e Nicole</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -112,7 +112,7 @@
     </style>
 </head>
 <body>
-
+<h2>David e Nicole</h2>
     <div id="container">
         <div id="game-board-container">
             <div id="game-board">
@@ -158,60 +158,74 @@
         function handleClick(e) {
             const id = e.target.id;
             if (board[id] === "" && gameActive) {
-                if (currentPlayer === "X") {
-                    // Jogada do jogador X
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
+                // Jogada do jogador X
+                board[id] = currentPlayer;
+                e.target.textContent = currentPlayer;
+                e.target.classList.add(currentPlayer);
 
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "O";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                } else if (currentPlayer === "O") {
-                    // Jogada do jogador O via clique do mouse
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
+                if (checkWinner(board, currentPlayer)) {
+                    highlightWinningCells(board, currentPlayer);
+                    alert(currentPlayer + ' venceu!');
+                    gameActive = false;
+                } else if (board.includes("")) {
+                    currentPlayer = "O"; // Altera para O
+                    generateNextMoves(board, currentPlayer, treeRoot);
+                    aiMove(); // Faz a jogada do AI
                 }
             }
         }
 
         function aiMove() {
             if (currentPlayer === "O" && gameActive) {
-                const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-                if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = currentPlayer;
-                    cells[randomIndex].textContent = currentPlayer;
-                    cells[randomIndex].classList.add(currentPlayer);
+                const bestMove = minimax(board, currentPlayer).index;
+                board[bestMove] = currentPlayer;
+                cells[bestMove].textContent = currentPlayer;
+                cells[bestMove].classList.add(currentPlayer);
 
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
+                if (checkWinner(board, currentPlayer)) {
+                    highlightWinningCells(board, currentPlayer);
+                    alert(currentPlayer + ' venceu!');
+                    gameActive = false;
+                } else {
+                    currentPlayer = "X"; // Retorna para X
+                    generateNextMoves(board, currentPlayer, treeRoot);
+                }
+            }
+        }
+
+        function minimax(newBoard, player, alpha = -Infinity, beta = Infinity) {
+            const winner = checkWinner(newBoard, "X") ? "X" : checkWinner(newBoard, "O") ? "O" : null;
+            if (winner === "O") return { score: 1 };
+            if (winner === "X") return { score: -1 };
+            if (!newBoard.includes("")) return { score: 0 };
+
+            let bestMove = player === "O" ? { score: -Infinity } : { score: Infinity };
+
+            for (let i = 0; i < newBoard.length; i++) {
+                if (newBoard[i] === "") {
+                    newBoard[i] = player;
+                    const score = minimax(newBoard, player === "O" ? "X" : "O", alpha, beta);
+                    newBoard[i] = ""; // desfaz a jogada
+
+                    if (player === "O") {
+                        if (score.score > bestMove.score) {
+                            bestMove = { score: score.score, index: i };
+                        }
+                        alpha = Math.max(alpha, score.score);
                     } else {
-                        alert('Empate!');
-                        gameActive = false;
+                        if (score.score < bestMove.score) {
+                            bestMove = { score: score.score, index: i };
+                        }
+                        beta = Math.min(beta, score.score);
+                    }
+
+                    // Poda
+                    if (beta <= alpha) {
+                        break;
                     }
                 }
             }
+            return bestMove;
         }
 
         function resetGame() {
@@ -220,7 +234,7 @@
                 cell.textContent = "";
                 cell.classList.remove("X", "O", "winning-cell");
             });
-            currentPlayer = "X";
+            currentPlayer = "X"; // Retorna para o jogador X
             gameActive = true;
             treeRoot.innerHTML = '';
         }
@@ -254,7 +268,7 @@
         }
 
         function generateNextMoves(board, player, parent) {
-            parent.innerHTML = ''; // Limpar o conteúdo atual
+            parent.innerHTML = '';
 
             const availableMoves = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
 
@@ -266,7 +280,6 @@
                 li.textContent = `Jogador ${player} -> Movimento ${move}`;
                 parent.appendChild(li);
 
-                // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
                 const miniBoard = document.createElement('div');
                 miniBoard.className = 'mini-board';
                 newBoard.forEach((val, index) => {
