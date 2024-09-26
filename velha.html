@@ -5,110 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Velha com Minimax</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Days+One&display=swap');
+
+        .days-one-regular {
+            font-family: "Days One", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        body{
+            font-family: Arial, Helvetica, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            height: 100vh;
+            height: 108vh;
         }
-        #container {
+
+        #container{
             display: flex;
             width: 100%;
         }
-        #game-board-container {
+
+        #game-board-container{
             width: 40%;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            flex-direction: column;
             background-color: #f4f4f4;
             border-right: 1px solid #ccc;
             padding: 10px;
         }
-        #game-board {
+
+        #game-board{
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 5px;
+            grid-template-columns: repeat(3, 90px);
+            grid-template-rows: repeat(3, 90px);
+            gap: 3px;
         }
-        .cell {
-            width: 100px;
-            height: 100px;
+
+        .cell{
+            width: 90px;
+            height: 90px;
             background-color: #cbc8c8;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 2em;
+            font-family: "Days One";
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-        .cell.X {
-            color: blue;
+
+        .cell.X{
+            background-color:#468FDD;
+            color: white;
+            font-weight: bold;
         }
-        .cell.O {
-            color: red;
+
+        .cell.O{
+            background-color: #D85B5B;
+            color: white;
+            font-weight: bold;
         }
-        .winning-cell {
+
+        .cell:hover{
+            background-color: #e0d3d3;
+        }
+
+        .winning-cell{
             background-color: #d4edda;
             border: 2px solid #c3e6cb;
         }
-        #tree {
+
+        #tree{
             width: 60%;
             padding: 20px;
             overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        #tree ul {
+
+        #tree ul{
+            display: flex;
+            flex-wrap: wrap;
+            padding-left: 0;
             list-style-type: none;
         }
-        .mini-board {
+
+        #tree li{
+            margin: 20px;
+        }
+
+        .mini-board{
             display: grid;
+            align-items: center;
             grid-template-columns: repeat(3, 30px);
             grid-template-rows: repeat(3, 30px);
-            gap: 2px;
-            margin-bottom: 10px;
         }
-        .mini-cell {
+
+        .mini-cell{
             width: 30px;
             height: 30px;
             background-color: #fff;
             border: 1px solid #ccc;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items:center;
             font-size: 1em;
         }
-        .mini-cell.X {
+
+        .mini-cell.X{
             color: blue;
+            font-weight: bold;
         }
-        .mini-cell.O {
+
+        .mini-cell.O{
             color: red;
+            font-weight: bold;
         }
-        #button-container {
+
+        #button-container{
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 20px;
         }
-        button {
+
+        button{
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin: 0 5px;
+            margin: 5px 5px;
         }
-        #reset-button {
+
+        #reset-button{
             background-color: #007bff;
             color: white;
+            margin: 10px;
         }
-        #play-o-button {
+
+        #play-o-button{
             background-color: #17a2b8;
             color: white;
+            margin: 10px;
         }
-        #reset-button:hover {
+
+        #reset-button:hover{
             background-color: #0056b3;
         }
-        #play-o-button:hover {
+
+        #play-o-button:hover{
             background-color: #138496;
         }
+
+        .x-move{
+            background-color: lightblue;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .o-move{
+            background-color: lightcoral;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
     </style>
 </head>
 <body>
@@ -264,6 +328,7 @@
 
                 const li = document.createElement('li');
                 li.textContent = `Jogador ${player} -> Movimento ${move}`;
+                li.classList.add(player === 'X' ? 'x-move' : 'o-move');
                 parent.appendChild(li);
 
                 // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
@@ -282,3 +347,4 @@
 
 </body>
 </html>
+
