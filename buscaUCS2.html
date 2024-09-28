@@ -1,214 +1,98 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulação de Busca de Custo Uniforme com D3.js</title>
+    <title>Vertical Tree Graph with D3.js</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
+        .node circle {
+            fill: steelblue;
+            stroke: #fff;
+            stroke-width: 3px;
         }
 
-        #graph {
-            border: 1px solid black;
-            width: 500px;
-            height: 300px;
-            position: relative;
-        }
-
-        .node {
-            cursor: pointer;
-        }
-
-        .active {
-            fill: lightblue !important;
-        }
-
-        .target {
-            fill: lightgreen !important;
+        .node text {
+            font: 12px sans-serif;
         }
 
         .link {
             fill: none;
-            stroke: black;
+            stroke: #ccc;
             stroke-width: 2px;
-        }
-
-        .edge-label {
-            font-size: 12px;
-            background-color: white;
-            border: 1px solid black;
-            border-radius: 3px;
-            padding: 2px;
-        }
-
-        .priority-queue {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .queue-item {
-            background-color: lightgray;
-            padding: 5px;
-            margin: 2px;
-            border: 1px solid black;
-            width: 80px;
-            text-align: center;
-        }
-
-        #nextButton {
-            margin-top: 20px;
         }
     </style>
 </head>
 <body>
+    <svg width="600" height="400"></svg>
 
-<h1>Simulação da Busca de Custo Uniforme com D3.js</h1>
-<div id="graph"></div>
+    <script>
+        // Data representing the tree structure
+        const data = {
+            name: "A",
+            children: [
+                {
+                    name: "B",
+                    children: [
+                        { name: "E", children: [{ name: "I" }] },
+                        { name: "F" }
+                    ]
+                },
+                {
+                    name: "C",
+                    children: [
+                        { name: "G", children: [{ name: "J" }, { name: "K" }] }
+                    ]
+                },
+                { name: "D", children: [{ name: "H" }] }
+            ]
+        };
 
-<div class="priority-queue" id="priorityQueue"></div>
-<button id="nextButton" onclick="nextStep()">Próximo</button>
+        // Set up dimensions and margins
+        const width = 600;
+        const height = 600;
+        const margin = { top: 20, right: 90, bottom: 30, left: 90 };
 
-<script>
-    const graphData = {
-        nodes: [
-            { id: 'A', x: 100, y: 150 },
-            { id: 'B', x: 300, y: 100 },
-            { id: 'C', x: 200, y: 50 },
-            { id: 'D', x: 400, y: 150 }
-        ],
-        links: [
-            { source: 'A', target: 'B', weight: 2 },
-            { source: 'A', target: 'C', weight: 1 },
-            { source: 'B', target: 'D', weight: 3 },
-            { source: 'C', target: 'D', weight: 1 }
-        ]
-    };
+        // Create the SVG container
+        const svg = d3.select("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    let queue = [{ node: 'A', cost: 0 }];
-    const visited = new Set();
-    const target = 'D';
-    let currentStep = 0;
+        const treeLayout = d3.tree().size([height - margin.top - margin.bottom, width - margin.left - margin.right]);
 
-    const svg = d3.select("#graph").append("svg")
-        .attr("width", 500)
-        .attr("height", 300);
+        const root = d3.hierarchy(data);
 
-    // Criação das arestas (links)
-    const link = svg.selectAll(".link")
-        .data(graphData.links)
-        .enter().append("line")
-        .attr("class", "link")
-        .attr("x1", d => graphData.nodes.find(n => n.id === d.source).x)
-        .attr("y1", d => graphData.nodes.find(n => n.id === d.source).y)
-        .attr("x2", d => graphData.nodes.find(n => n.id === d.target).x)
-        .attr("y2", d => graphData.nodes.find(n => n.id === d.target).y);
+        treeLayout(root);
 
-    // Criação dos rótulos das arestas (weights)
-    svg.selectAll(".edge-label")
-        .data(graphData.links)
-        .enter().append("text")
-        .attr("class", "edge-label")
-        .attr("x", d => (graphData.nodes.find(n => n.id === d.source).x + graphData.nodes.find(n => n.id === d.target).x) / 2)
-        .attr("y", d => (graphData.nodes.find(n => n.id === d.source).y + graphData.nodes.find(n => n.id === d.target).y) / 2)
-        .text(d => d.weight);
+        // Create links between nodes (vertical orientation)
+        svg.selectAll(".link")
+            .data(root.links())
+            .enter()
+            .append("path")
+            .attr("class", "link")
+            .attr("d", d3.linkVertical()
+                .x(d => d.x)  // Change to vertical
+                .y(d => d.y)  // Change to vertical
+            );
 
-    // Criação dos nós (nodes)
-    const node = svg.selectAll(".node")
-        .data(graphData.nodes)
-        .enter().append("circle")
-        .attr("class", "node")
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y)
-        .attr("r", 20)
-        .style("fill", "white")
-        .on("mouseover", function () {
-            d3.select(this).style("fill", "lightgray");
-        })
-        .on("mouseout", function () {
-            d3.select(this).style("fill", "white");
-        });
+        // Create nodes
+        const node = svg.selectAll(".node")
+            .data(root.descendants())
+            .enter()
+            .append("g")
+            .attr("class", "node")
+            .attr("transform", d => `translate(${d.x},${d.y})`);
 
-    // Rótulos dos nós
-    svg.selectAll(".node-label")
-        .data(graphData.nodes)
-        .enter().append("text")
-        .attr("class", "node-label")
-        .attr("x", d => d.x)
-        .attr("y", d => d.y)
-        .attr("dy", 5)
-        .attr("text-anchor", "middle")
-        .text(d => d.id);
+        node.append("circle")
+            .attr("r", 10);
 
-    function updateQueueDisplay() {
-        const priorityQueueDiv = document.getElementById('priorityQueue');
-        priorityQueueDiv.innerHTML = '';
-        queue.forEach(item => {
-            const queueItem = document.createElement('div');
-            queueItem.className = 'queue-item';
-            queueItem.innerText = `${item.node}: ${item.cost}`;
-            priorityQueueDiv.appendChild(queueItem);
-        });
-    }
-
-    function highlightNode(nodeId, className) {
-        d3.selectAll(".node").filter(d => d.id === nodeId).classed(className, true);
-    }
-
-    function nextStep() {
-        if (currentStep === queue.length) return; // Se não houver mais passos
-
-        // Ordena a fila por custo
-        queue.sort((a, b) => a.cost - b.cost);
-        const current = queue.shift();
-
-        highlightNode(current.node, 'active');
-        updateQueueDisplay();
-
-        // Verifica se o nó atual é o alvo
-        if (current.node === target) {
-            highlightNode(current.node, 'target');
-            document.getElementById('nextButton').disabled = true; // Desabilita o botão
-            return;
-        }
-
-        visited.add(current.node);
-
-        // Adiciona nós adjacentes à fila
-        for (const link of graphData.links.filter(link => link.source === current.node)) {
-            if (!visited.has(link.target)) {
-                const targetNode = link.target;
-                const weight = link.weight;
-                const existingNode = queue.find(item => item.node === targetNode);
-                
-                const newCost = current.cost + weight; // Custo total para chegar ao nó alvo
-
-                // Se o nó já está na fila, atualiza seu custo se for menor
-                if (existingNode) {
-                    if (newCost < existingNode.cost) {
-                        existingNode.cost = newCost;
-                    }
-                } else {
-                    queue.push({ node: targetNode, cost: newCost });
-                }
-            }
-        }
-
-        currentStep++;
-        updateQueueDisplay();
-    }
-
-    // Inicializa a exibição da fila
-    updateQueueDisplay();
-</script>
-
+        node.append("text")
+            .attr("dy", ".35em")
+            .attr("x", d => d.children ? -15 : 15)
+            .attr("text-anchor", d => d.children ? "end" : "start")
+            .text(d => d.data.name);
+    </script>
 </body>
 </html>
