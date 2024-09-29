@@ -4,3 +4,8 @@ Esboços e Implementações da disciplina de Inteligência Artificial - Computa�
 - <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/puzzle8.html">Laboratório do Jogo do 8</a>
 - <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/velha.html">Laboratório do Jogo do Velha</a>
 
+Buscas:
+
+- <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaBFS.html">Busca em Extensão/Largura (Breadth-First Search - BFS)</a>
+- <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaUCS.html">Busca Custo Uniforme (Uniform Cost Search - UCS)</a>
+- <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaDFS.html">Busca em Profundidade (Depth First Search - DFS)</a>

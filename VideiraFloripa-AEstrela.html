@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grafo de Rotas: Videira a Florianópolis</title>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <style>
+    .node {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+    text {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <svg width="800" height="600"></svg>
+
+  <script>
+    // Dados do grafo (nós e arestas)
+    const graph = {
+      nodes: [
+        { id: 'Videira', heuristic: 310 },
+        { id: 'Campos Novos', heuristic: 240 },
+        { id: 'Curitibanos', heuristic: 200 },
+        { id: 'Lages', heuristic: 170 },
+        { id: 'Blumenau', heuristic: 115 },
+        { id: 'Balneário Camboriú', heuristic: 75 },
+        { id: 'Joinville', heuristic: 130 },
+        { id: 'Florianópolis', heuristic: 0 }
+      ],
+      links: [
+        { source: 'Videira', target: 'Campos Novos', distance: 84 },
+        { source: 'Campos Novos', target: 'Curitibanos', distance: 62 },
+        { source: 'Curitibanos', target: 'Lages', distance: 87 },
+        { source: 'Curitibanos', target: 'Blumenau', distance: 240 },
+        { source: 'Lages', target: 'Florianópolis', distance: 196 },
+        { source: 'Blumenau', target: 'Balneário Camboriú', distance: 64 },
+        { source: 'Balneário Camboriú', target: 'Florianópolis', distance: 84 },
+        { source: 'Blumenau', target: 'Joinville', distance: 99 },
+        { source: 'Joinville', target: 'Florianópolis', distance: 180 }
+      ]
+    };
+
+    const width = 800;
+    const height = 600;
+
+    const svg = d3.select("svg");
+
+    const simulation = d3.forceSimulation(graph.nodes)
+      .force("link", d3.forceLink(graph.links).id(d => d.id).distance(d => d.distance * 2))
+      .force("charge", d3.forceManyBody().strength(-500))
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+    const link = svg.append("g")
+      .attr("class", "links")
+      .selectAll("line")
+      .data(graph.links)
+      .enter().append("line")
+      .attr("class", "link")
+      .attr("stroke-width", 2);
+
+    const node = svg.append("g")
+      .attr("class", "nodes")
+      .selectAll("circle")
+      .data(graph.nodes)
+      .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 10)
+      .attr("fill", "#69b3a2")
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+    const text = svg.append("g")
+      .attr("class", "labels")
+      .selectAll("text")
+      .data(graph.nodes)
+      .enter().append("text")
+      .attr("dy", -15)
+      .attr("dx", 0)
+      .text(d => `${d.id} (h=${d.heuristic})`);
+
+    simulation.on("tick", () => {
+      link
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      node
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+      text
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+    });
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UCS Passo a Passo</title>
+    <style>
+        .node {
+            fill: lightblue;
+            stroke: black;
+            stroke-width: 2px;
+        }
+        .link {
+            stroke: gray;
+            stroke-width: 2px;
+        }
+        .highlight {
+            stroke: red;
+            stroke-width: 4px;
+        }
+        .details {
+            background-color: #ffeb3b;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        text {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            fill: black;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+</head>
+<body>
+    <h1>Simulação da Busca de Custo Uniforme</h1>
+    <div>
+        <button onclick="nextStep()">Próximo Passo</button>
+    </div>
+    <svg width="800" height="250"></svg>
+    
+    <div class="details">
+        <p><strong>Nó Selecionado:</strong> <span id="selectedNode">Nenhum</span></p>
+        <p><strong>Nós Filhos:</strong> <span id="childrenNodes">Nenhum</span></p>
+        <p><strong>Opened List:</strong> <span id="openedList">Nenhuma</span></p>
+        <p><strong>Opened List Ordenada:</strong> <span id="sortedOpenedList">Nenhuma</span></p>
+        <p><strong>Closed List:</strong> <span id="closedList">Nenhuma</span></p>
+        <p><strong>Caminho:</strong> <span id="path">Nenhum</span></p>
+        <p><strong>Custo Total:</strong> <span id="totalCost">0</span></p>
+    </div>
+
+    <script>
+        const nodes = [
+            {id: 'V1', level: 0, x: 100, y: 100},
+            {id: 'V2', level: 1, x: 300, y: 50},
+            {id: 'V3', level: 1, x: 300, y: 150},
+            {id: 'V4', level: 2, x: 500, y: 50},
+            {id: 'V5', level: 2, x: 500, y: 150},
+            {id: 'V6', level: 3, x: 700, y: 100}
+        ];
+
+        const links = [
+            {source: 'V1', target: 'V2', cost: 9},
+            {source: 'V1', target: 'V3', cost: 4},
+            {source: 'V2', target: 'V4', cost: 7},
+            {source: 'V2', target: 'V3', cost: 2},
+            {source: 'V2', target: 'V5', cost: 3},
+            {source: 'V3', target: 'V4', cost: 1},
+            {source: 'V3', target: 'V5', cost: 6},
+            {source: 'V4', target: 'V5', cost: 4},
+            {source: 'V4', target: 'V6', cost: 8},
+            {source: 'V5', target: 'V6', cost: 2}
+        ];
+
+        const svg = d3.select("svg");
+
+        // Desenhar nós
+        svg.selectAll("circle")
+            .data(nodes)
+            .enter()
+            .append("circle")
+            .attr("cx", d => d.x)
+            .attr("cy", d => d.y)
+            .attr("r", 20)
+            .attr("class", "node");
+
+        // Adicionar rótulos dos nós
+        svg.selectAll(".node-label")
+            .data(nodes)
+            .enter()
+            .append("text")
+            .attr("x", d => d.x)
+            .attr("y", d => d.y)
+            .attr("dy", 5)
+            .attr("text-anchor", "middle")
+            .text(d => d.id);
+
+        // Desenhar arestas
+        svg.selectAll("line")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("x1", d => nodes.find(n => n.id === d.source).x)
+            .attr("y1", d => nodes.find(n => n.id === d.source).y)
+            .attr("x2", d => nodes.find(n => n.id === d.target).x)
+            .attr("y2", d => nodes.find(n => n.id === d.target).y)
+            .attr("class", "link");
+
+        // Adicionar rótulos dos custos nas arestas
+        svg.selectAll(".link-label")
+            .data(links)
+            .enter()
+            .append("text")
+            .attr("x", d => (nodes.find(n => n.id === d.source).x + nodes.find(n => n.id === d.target).x) / 2)
+            .attr("y", d => (nodes.find(n => n.id === d.source).y + nodes.find(n => n.id === d.target).y) / 2)
+            .attr("text-anchor", "middle")
+            .text(d => d.cost);
+
+        // Variáveis do algoritmo UCS
+        let opened = [{node: 'V1', cost: 0, path: ['V1']}];
+        let closed = [];
+        let step = 0;
+        let found = false;
+
+        function nextStep() {
+            if (opened.length === 0 || found) {
+                alert("Busca completada ou sem solução.");
+                return;
+            }
+
+            // Ordenar lista aberta por custo
+            opened.sort((a, b) => a.cost - b.cost);
+
+            // Selecionar nó com o menor custo
+            const current = opened.shift();
+            closed.push({node: current.node, cost: current.cost});
+
+            // Verificar se o nó atual é o nó destino (V6)
+            if (current.node === 'V6') {
+                found = true;
+                document.getElementById("path").textContent = current.path.join(' -> ');
+                document.getElementById("totalCost").textContent = current.cost;
+                alert("Caminho encontrado!");
+                return;
+            }
+
+            // Destacar nó selecionado
+            svg.selectAll("circle")
+                .attr("class", d => d.id === current.node ? "node highlight" : "node");
+
+            // Atualizar listas
+            document.getElementById("selectedNode").textContent = current.node;
+            document.getElementById("openedList").textContent = opened.map(n => `${n.node} (${n.cost})`).join(', ');
+            document.getElementById("closedList").textContent = closed.map(n => `${n.node} (${n.cost})`).join(', ');
+
+            // Explorar vizinhos
+            const neighbors = links
+                .filter(link => link.source === current.node && !closed.some(n => n.node === link.target))
+                .map(link => {
+                    const existingNode = opened.find(n => n.node === link.target);
+                    const newCost = current.cost + link.cost;
+                    const newPath = [...current.path, link.target];
+                    if (existingNode) {
+                        if (newCost < existingNode.cost) {
+                            existingNode.cost = newCost;
+                            existingNode.path = newPath;
+                        }
+                    } else {
+                        opened.push({node: link.target, cost: newCost, path: newPath});
+                    }
+                    return {node: link.target, cost: newCost};
+                });
+
+            document.getElementById("childrenNodes").textContent = neighbors.map(n => `${n.node} (${n.cost})`).join(', ');
+
+            // Mostrar lista aberta ordenada por custo
+            const sortedOpened = [...opened].sort((a, b) => a.cost - b.cost);
+            document.getElementById("sortedOpenedList").textContent = sortedOpened.map(n => `${n.node} (${n.cost})`).join(', ');
+
+            step++;
+        }
+    </script>
+</body>
+</html>
