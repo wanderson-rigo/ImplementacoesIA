@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha com Minimax</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+        #container {
+            display: flex;
+            width: 100%;
+        }
+        #game-board-container {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+            border-right: 1px solid #ccc;
+            padding: 10px;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #cbc8c8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            cursor: pointer;
+        }
+        .cell.X {
+            color: blue;
+        }
+        .cell.O {
+            color: red;
+        }
+        .winning-cell {
+            background-color: #d4edda;
+            border: 2px solid #c3e6cb;
+        }
+        #tree {
+            width: 60%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #e9ecef;
+            border-left: 1px solid #ccc;
+        }
+        #tree h3 {
+            margin: 0 0 10px;
+        }
+        #tree ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        #tree li {
+            margin: 5px 0;
+        }
+        #scoreboard {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        #button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        #reset-button {
+            background-color: #007bff;
+            color: white;
+        }
+        #play-o-button {
+            background-color: #17a2b8;
+            color: white;
+        }
+        #reset-button:hover {
+            background-color: #0056b3;
+        }
+        #play-o-button:hover {
+            background-color: #138496;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="game-board-container">
+            <div id="game-board">
+                <div class="cell" id="0"></div>
+                <div class="cell" id="1"></div>
+                <div class="cell" id="2"></div>
+                <div class="cell" id="3"></div>
+                <div class="cell" id="4"></div>
+                <div class="cell" id="5"></div>
+                <div class="cell" id="6"></div>
+                <div class="cell" id="7"></div>
+                <div class="cell" id="8"></div>
+            </div>
+            <div id="button-container">
+                <button id="reset-button">Reiniciar</button>
+                <button id="play-o-button">Jogar O</button>
+            </div>
+            <div id="scoreboard">
+                <p>Vitórias de X: <span id="x-wins">0</span></p>
+                <p>Vitórias de O: <span id="o-wins">0</span></p>
+                <p>Empates: <span id="ties">0</span></p>
+            </div>
+        </div>
+        <div id="tree">
+            <h3>Próximas Possibilidades</h3>
+            <ul id="tree-root"></ul>
+        </div>
+    </div>
+
+    <script>
+        const board = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+        let gameActive = true;
+        let xWins = 0;
+        let oWins = 0;
+        let ties = 0;
+
+        const cells = document.querySelectorAll('.cell');
+        const treeRoot = document.getElementById('tree-root');
+        const resetButton = document.getElementById('reset-button');
+        const playOButton = document.getElementById('play-o-button');
+        const xWinsDisplay = document.getElementById('x-wins');
+        const oWinsDisplay = document.getElementById('o-wins');
+        const tiesDisplay = document.getElementById('ties');
+
+        cells.forEach(cell => {
+            cell.addEventListener('click', handleClick);
+        });
+
+        resetButton.addEventListener('click', resetGame);
+        playOButton.addEventListener('click', aiMove);
+
+        function handleClick(e) {
+            const id = e.target.id;
+            if (board[id] === "" && gameActive) {
+                board[id] = currentPlayer;
+                e.target.textContent = currentPlayer;
+                e.target.classList.add(currentPlayer);
+
+                if (checkWinner(board) === currentPlayer) {
+                    highlightWinningCells(board, currentPlayer);
+                    alert(currentPlayer + ' venceu!');
+                    gameActive = false;
+                    updateScore(currentPlayer);
+                } else if (!board.includes("")) {
+                    alert('Empate!');
+                    gameActive = false;
+                    ties++;
+                    tiesDisplay.textContent = ties;
+                } else {
+                    currentPlayer = "O";
+                    aiMove();
+                }
+                generateNextMoves(board, currentPlayer, treeRoot);
+            }
+        }
+
+        function aiMove() {
+            if (currentPlayer === "O" && gameActive) {
+                const bestMove = getBestMove(board, currentPlayer);
+                if (bestMove !== null) {
+                    board[bestMove] = currentPlayer;
+                    cells[bestMove].textContent = currentPlayer;
+                    cells[bestMove].classList.add(currentPlayer);
+
+                    if (checkWinner(board) === currentPlayer) {
+                        highlightWinningCells(board, currentPlayer);
+                        alert(currentPlayer + ' venceu!');
+                        gameActive = false;
+                        updateScore(currentPlayer);
+                    } else if (!board.includes("")) {
+                        alert('Empate!');
+                        gameActive = false;
+                        ties++;
+                        tiesDisplay.textContent = ties;
+                    } else {
+                        currentPlayer = "X";
+                    }
+                    generateNextMoves(board, currentPlayer, treeRoot);
+                }
+            }
+        }
+
+        function updateScore(winner) {
+            if (winner === "X") {
+                xWins++;
+                xWinsDisplay.textContent = xWins;
+            } else if (winner === "O") {
+                oWins++;
+                oWinsDisplay.textContent = oWins;
+            }
+        }
+
+        function resetGame() {
+            board.fill("");
+            cells.forEach(cell => {
+                cell.textContent = "";
+                cell.classList.remove("X", "O", "winning-cell");
+            });
+            currentPlayer = "X";
+            gameActive = true;
+            treeRoot.innerHTML = '';
+        }
+
+        function checkWinner(board) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            for (let pattern of winPatterns) {
+                if (pattern.every(index => board[index] === "X")) return "X";
+                if (pattern.every(index => board[index] === "O")) return "O";
+            }
+            return null; // Sem vencedor
+        }
+
+        function highlightWinningCells(board, player) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            const winningPattern = winPatterns.find(pattern => {
+                return pattern.every(index => board[index] === player);
+            });
+
+            if (winningPattern) {
+                winningPattern.forEach(index => {
+                    cells[index].classList.add("winning-cell");
+                });
+            }
+        }
+
+        function getBestMove(board, player) {
+            const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+            return emptyCells[Math.floor(Math.random() * emptyCells.length)]; // Escolhe aleatoriamente
+        }
+
+        function generateNextMoves(board, player, parent) {
+            parent.innerHTML = '';
+            const availableMoves = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+            availableMoves.forEach(move => {
+                const newBoard = [...board];
+                newBoard[move] = player;
+
+                const li = document.createElement('li');
+                li.textContent = `Jogada em ${move}`;
+                parent.appendChild(li);
+
+                if (checkWinner(newBoard) === player) {
+                    li.style.color = 'green'; // Vencedor
+                } else {
+                    generateNextMoves(newBoard, player === "X" ? "O" : "X", li);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
