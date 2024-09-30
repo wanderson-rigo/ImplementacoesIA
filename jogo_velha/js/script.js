@@ -43,7 +43,7 @@ function handleClick(e) {
 
 function aiMove() {
   if (gameActive) {
-    const bestMove = minimax(board, currentPlayer, true);
+    const bestMove = minimax(board, currentPlayer, -Infinity, Infinity);
     board[bestMove.index] = currentPlayer;
     updateBoard();
     if (checkWinner(board, currentPlayer)) {
@@ -98,7 +98,6 @@ function updateBoard() {
   });
 }
 
-
 function checkWinner(board, player) {
   const winPatterns = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
@@ -122,7 +121,7 @@ function highlightWinningCells(board, player) {
   }
 }
 
-function minimax(newBoard, player, isMaximizing) {
+function minimax(newBoard, player, alpha, beta) {
   const availSpots = newBoard.reduce((acc, val, idx) => val === '' ? acc.concat(idx) : acc, []);
 
   if (checkWinner(newBoard, 'X')) {
@@ -133,44 +132,41 @@ function minimax(newBoard, player, isMaximizing) {
     return { score: 0 };
   }
 
-  const moves = [];
+  let bestMove = {};
 
-  for (let i = 0; i < availSpots.length; i++) {
-    const move = {};
-    move.index = availSpots[i];
-    newBoard[availSpots[i]] = player;
-
-    if (player === 'O') {
-      const result = minimax(newBoard, 'X', false);
-      move.score = result.score;
-    } else {
-      const result = minimax(newBoard, 'O', true);
-      move.score = result.score;
-    }
-
-    newBoard[availSpots[i]] = '';
-    moves.push(move);
-  }
-
-  let bestMove;
-  if (isMaximizing) {
-    let bestScore = -Infinity;
-    for (let i = 0; i < moves.length; i++) {
-      if (moves[i].score > bestScore) {
-        bestScore = moves[i].score;
-        bestMove = moves[i];
+  if (player === 'O') {
+    let maxEval = -Infinity;
+    for (let i = 0; i < availSpots.length; i++) {
+      newBoard[availSpots[i]] = player;
+      let eval = minimax(newBoard, 'X', alpha, beta).score;
+      newBoard[availSpots[i]] = '';
+      if (eval > maxEval) {
+        maxEval = eval;
+        bestMove = { index: availSpots[i], score: maxEval };
+      }
+      alpha = Math.max(alpha, eval);
+      if (beta <= alpha) {
+        break;
       }
     }
+    return bestMove;
   } else {
-    let bestScore = Infinity;
-    for (let i = 0; i < moves.length; i++) {
-      if (moves[i].score < bestScore) {
-        bestScore = moves[i].score;
-        bestMove = moves[i];
+    let minEval = Infinity;
+    for (let i = 0; i < availSpots.length; i++) {
+      newBoard[availSpots[i]] = player;
+      let eval = minimax(newBoard, 'O', alpha, beta).score;
+      newBoard[availSpots[i]] = '';
+      if (eval < minEval) {
+        minEval = eval;
+        bestMove = { index: availSpots[i], score: minEval };
+      }
+      beta = Math.min(beta, eval);
+      if (beta <= alpha) {
+        break;
       }
     }
+    return bestMove;
   }
-  return bestMove;
 }
 
 function generateNextMoves(board, player, parent) {
@@ -193,6 +189,9 @@ function generateNextMoves(board, player, parent) {
       const miniCell = document.createElement('div');
       miniCell.className = 'mini-cell ' + val;
       miniCell.setAttribute('data-value', val);
+      if (board[index] !== '') {
+        miniCell.classList.add('played-move');
+      }
       miniBoard.appendChild(miniCell);
     });
     li.appendChild(miniBoard);
