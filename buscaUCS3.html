@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulação UCS Passo a Passo com Grafo</title>
+    <style>
+        .node {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid black;
+            border-radius: 50%;
+            text-align: center;
+            width: 50px;
+            height: 50px;
+            fill: steelblue;
+        }
+
+        text {
+            fill: rgb(27, 30, 218);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+
+        .fringe, .explored {
+            margin-top: 20px;
+        }
+
+        #nextBtn {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+
+        .explored {
+            color: red;
+        }
+
+        .fringe {
+            color: blue;
+        }
+
+        svg {
+            margin-top: 20px;
+        }
+
+        .closed-list {
+            margin-left: 20px;
+            padding: 10px;
+        }
+
+        .visited {
+            fill: lightgreen;
+        }
+
+        .edge {
+            stroke: black;
+            stroke-width: 2px;
+        }
+
+        .highlighted-edge {
+            stroke: red;
+            stroke-width: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simulação UCS Passo a Passo</h1>
+    
+    <div id="description">Clique em "Próximo" para iniciar a simulação.</div>
+
+    <div class="fringe">
+        <strong>Fringe:</strong>
+        <span id="fringe"></span>
+    </div>
+
+    <div class="explored">
+        <strong>Explored:</strong>
+        <span id="explored"></span>
+    </div>
+
+    <button id="nextBtn">Próximo</button>
+
+    <!-- Área de desenho do grafo -->
+    <svg width="600" height="400" id="graph">
+        <!-- Nós -->
+        <circle cx="300" cy="50" r="20" id="A" class="node"></circle>
+        <text x="290" y="55">A</text>
+
+        <circle cx="150" cy="150" r="20" id="B" class="node"></circle>
+        <text x="140" y="155">B</text>
+
+        <circle cx="300" cy="150" r="20" id="C" class="node"></circle>
+        <text x="290" y="155">C</text>
+
+        <circle cx="450" cy="150" r="20" id="D" class="node"></circle>
+        <text x="440" y="155">D</text>
+
+        <circle cx="50" cy="250" r="20" id="F" class="node"></circle>
+        <text x="40" y="255">F</text>
+
+        <circle cx="150" cy="250" r="20" id="G" class="node"></circle>
+        <text x="140" y="255">G</text>
+
+        <circle cx="250" cy="250" r="20" id="H" class="node"></circle>
+        <text x="240" y="255">H</text>
+
+        <circle cx="350" cy="250" r="20" id="I" class="node"></circle>
+        <text x="340" y="255">I</text>
+
+        <circle cx="450" cy="250" r="20" id="J" class="node"></circle>
+        <text x="440" y="255">J</text>
+
+        <circle cx="550" cy="250" r="20" id="K" class="node"></circle>
+        <text x="540" y="255">K</text>
+
+        <circle cx="400" cy="350" r="20" id="L" class="node"></circle>
+        <text x="390" y="355">L</text>
+
+        <circle cx="500" cy="350" r="20" id="M" class="node"></circle>
+        <text x="490" y="355">M</text>
+
+        <!-- Arestas com pesos -->
+        <line x1="300" y1="50" x2="150" y2="150" class="edge" id="edgeAB"></line>
+        <text x="210" y="90">5</text>
+
+        <line x1="300" y1="50" x2="300" y2="150" class="edge" id="edgeAC"></line>
+        <text x="310" y="100">9</text>
+
+        <line x1="300" y1="50" x2="450" y2="150" class="edge" id="edgeAD"></line>
+        <text x="380" y="90">7</text>
+
+        <line x1="150" y1="150" x2="50" y2="250" class="edge" id="edgeBF"></line>
+        <text x="90" y="200">10</text>
+
+        <line x1="150" y1="150" x2="150" y2="250" class="edge" id="edgeBG"></line>
+        <text x="160" y="200">8</text>
+
+        <line x1="150" y1="150" x2="250" y2="250" class="edge" id="edgeBH"></line>
+        <text x="190" y="210">7</text>
+
+        <line x1="300" y1="150" x2="350" y2="250" class="edge" id="edgeCI"></line>
+        <text x="330" y="200">2</text>
+
+        <line x1="300" y1="150" x2="450" y2="250" class="edge" id="edgeCJ"></line>
+        <text x="380" y="200">1</text>
+
+        <line x1="300" y1="150" x2="250" y2="250" class="edge" id="edgeCH"></line>
+        <text x="275" y="210">3</text>
+
+        <line x1="450" y1="150" x2="550" y2="250" class="edge" id="edgeDK"></line>
+        <text x="500" y="200">10</text>
+
+        <line x1="450" y1="150" x2="400" y2="350" class="edge" id="edgeDL"></line>
+        <text x="420" y="250">6</text>
+
+        <line x1="450" y1="150" x2="500" y2="350" class="edge" id="edgeDM"></line>
+        <text x="470" y="250">7</text>
+    </svg>
+
+    <script>
+        // Passos da simulação com as mudanças da fringe e explored
+        const steps = [
+            { fringe: ['A (0)'], explored: [], description: 'Inicializando com o nó A.', highlightNode: 'A' },
+            { fringe: ['B (5)', 'D (7)', 'C (9)'], explored: ['A'], description: 'Expandindo o nó A. Filhos: B(5), C(9), D(7).', highlightNode: 'B', highlightEdge: 'edgeAB' },
+            { fringe: ['D (7)', 'C (9)', 'H (12)', 'G (13)', 'F (15)'], explored: ['A', 'B'], description: 'Expandindo o nó B. Filhos: F(15), G(13), H(12).', highlightNode: 'D', highlightEdge: 'edgeAD' },
+            { fringe: ['C (9)', 'H (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D'], description: 'Expandindo o nó D. Filhos: K(17), L(13), M(14).', highlightNode: 'C', highlightEdge: 'edgeAC' },
+            { fringe: ['J (10)', 'H (12)', 'I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C'], description: 'Expandindo o nó C. Filhos: H(12), I(11), J(10).', highlightNode: 'J', highlightEdge: 'edgeCJ' },
+            { fringe: ['H (12)', 'I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J'], description: 'Removendo o nó J. Sem filhos.', highlightNode: 'H', highlightEdge: 'edgeBH' },
+            { fringe: ['I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H'], description: 'Removendo o nó H. Sem filhos.', highlightNode: 'I', highlightEdge: 'edgeCI' },
+            { fringe: ['L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I'], description: 'Removendo o nó I. Sem filhos.', highlightNode: 'L', highlightEdge: 'edgeDL' },
+            { fringe: ['G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L'], description: 'Removendo o nó L. Sem filhos.', highlightNode: 'G', highlightEdge: 'edgeBG' },
+            { fringe: ['M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G'], description: 'Removendo o nó G. Sem filhos.', highlightNode: 'M', highlightEdge: 'edgeDM' },
+            { fringe: ['F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M'], description: 'Removendo o nó M. Sem filhos.', highlightNode: 'F', highlightEdge: 'edgeBF' },
+            { fringe: ['K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M', 'F'], description: 'Removendo o nó F. Sem filhos.', highlightNode: 'K', highlightEdge: 'edgeDK' },
+            { fringe: [], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M', 'F', 'K'], description: 'Removendo o nó K. Sem filhos. Fim da busca.', highlightNode: 'K' }
+        ];
+
+        let currentStep = 0;
+
+        // Função para desenhar o grafo com destaques
+        function highlightStep(step) {
+            // Limpar destaques anteriores
+            document.querySelectorAll('circle').forEach(node => node.classList.remove('visited'));
+            document.querySelectorAll('.edge').forEach(edge => edge.classList.remove('highlighted-edge'));
+
+            // Destacar o nó atual
+            const node = document.getElementById(step.highlightNode);
+            if (node) {
+                node.classList.add('visited');
+            }
+
+            // Destacar a aresta (se houver)
+            const edge = document.getElementById(step.highlightEdge);
+            if (edge) {
+                edge.classList.add('highlighted-edge');
+            }
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentStep < steps.length) {
+                const step = steps[currentStep];
+                document.getElementById('fringe').innerText = step.fringe.join(', ');
+                document.getElementById('explored').innerText = step.explored.join(', ');
+                document.getElementById('description').innerText = step.description;
+
+                // Atualizar destaque no grafo
+                highlightStep(step);
+
+                currentStep++;
+            } else {
+                document.getElementById('description').innerText = 'A busca terminou!';
+            }
+        });
+    </script>
+</body>
+</html>
