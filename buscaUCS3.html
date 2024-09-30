@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +18,7 @@
         }
 
         text {
-            fill: rgb(27, 30, 218);
+            fill: rgb(20, 37, 189);
             font-family: Arial, sans-serif;
             font-size: 14px;
         }
@@ -37,28 +37,11 @@
         }
 
         .highlight {
-            background-color: yellow;
-        }
-
-        .explored {
-            color: red;
-        }
-
-        .fringe {
-            color: blue;
-        }
-
-        svg {
-            margin-top: 20px;
-        }
-
-        .closed-list {
-            margin-left: 20px;
-            padding: 10px;
+            fill: yellow; /* Cor do nó do caminho mínimo */
         }
 
         .visited {
-            fill: lightgreen;
+            fill: lightgreen; /* Cor dos nós explorados */
         }
 
         .edge {
@@ -105,12 +88,15 @@
         <text x="440" y="155">D</text>
 
         <circle cx="50" cy="250" r="20" id="F" class="node"></circle>
-        <text x="40" y="255">F</text>
+        <text x="40" y="255">E</text>
 
         <circle cx="150" cy="250" r="20" id="G" class="node"></circle>
-        <text x="140" y="255">G</text>
+        <text x="140" y="255">F</text>
 
         <circle cx="250" cy="250" r="20" id="H" class="node"></circle>
+        <text x="240" y="255">G</text>
+
+        <circle cx="270" cy="250" r="20" id="H" class="node"></circle>
         <text x="240" y="255">H</text>
 
         <circle cx="350" cy="250" r="20" id="I" class="node"></circle>
@@ -174,22 +160,27 @@
             { fringe: ['D (7)', 'C (9)', 'H (12)', 'G (13)', 'F (15)'], explored: ['A', 'B'], description: 'Expandindo o nó B. Filhos: F(15), G(13), H(12).', highlightNode: 'D', highlightEdge: 'edgeAD' },
             { fringe: ['C (9)', 'H (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D'], description: 'Expandindo o nó D. Filhos: K(17), L(13), M(14).', highlightNode: 'C', highlightEdge: 'edgeAC' },
             { fringe: ['J (10)', 'H (12)', 'I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C'], description: 'Expandindo o nó C. Filhos: H(12), I(11), J(10).', highlightNode: 'J', highlightEdge: 'edgeCJ' },
-            { fringe: ['H (12)', 'I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J'], description: 'Removendo o nó J. Sem filhos.', highlightNode: 'H', highlightEdge: 'edgeBH' },
-            { fringe: ['I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H'], description: 'Removendo o nó H. Sem filhos.', highlightNode: 'I', highlightEdge: 'edgeCI' },
-            { fringe: ['L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I'], description: 'Removendo o nó I. Sem filhos.', highlightNode: 'L', highlightEdge: 'edgeDL' },
-            { fringe: ['G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L'], description: 'Removendo o nó L. Sem filhos.', highlightNode: 'G', highlightEdge: 'edgeBG' },
-            { fringe: ['M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G'], description: 'Removendo o nó G. Sem filhos.', highlightNode: 'M', highlightEdge: 'edgeDM' },
-            { fringe: ['F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M'], description: 'Removendo o nó M. Sem filhos.', highlightNode: 'F', highlightEdge: 'edgeBF' },
-            { fringe: ['K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M', 'F'], description: 'Removendo o nó F. Sem filhos.', highlightNode: 'K', highlightEdge: 'edgeDK' },
+            { fringe: ['H (12)', 'I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J'], description: 'Removendo o nó J. Sem filhos.', highlightNode: 'H' },
+            { fringe: ['I (12)', 'L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H'], description: 'Removendo o nó H. Sem filhos.', highlightNode: 'I' },
+            { fringe: ['L (13)', 'G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I'], description: 'Removendo o nó I. Sem filhos.', highlightNode: 'L' },
+            { fringe: ['G (13)', 'M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L'], description: 'Removendo o nó L. Sem filhos.', highlightNode: 'G' },
+            { fringe: ['M (14)', 'F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G'], description: 'Removendo o nó G. Sem filhos.', highlightNode: 'M' },
+            { fringe: ['F (15)', 'K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M'], description: 'Removendo o nó M. Sem filhos.', highlightNode: 'F' },
+            { fringe: ['K (17)'], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M', 'F'], description: 'Removendo o nó F. Sem filhos.', highlightNode: 'K' },
             { fringe: [], explored: ['A', 'B', 'D', 'C', 'J', 'H', 'I', 'L', 'G', 'M', 'F', 'K'], description: 'Removendo o nó K. Sem filhos. Fim da busca.', highlightNode: 'K' }
         ];
+
+        const path = ['A', 'B', 'D', 'C', 'J']; // Caminho mínimo encontrado
 
         let currentStep = 0;
 
         // Função para desenhar o grafo com destaques
         function highlightStep(step) {
             // Limpar destaques anteriores
-            document.querySelectorAll('circle').forEach(node => node.classList.remove('visited'));
+            document.querySelectorAll('.node').forEach(node => {
+                node.classList.remove('visited');
+                node.classList.remove('highlight');
+            });
             document.querySelectorAll('.edge').forEach(edge => edge.classList.remove('highlighted-edge'));
 
             // Destacar o nó atual
@@ -199,10 +190,22 @@
             }
 
             // Destacar a aresta (se houver)
-            const edge = document.getElementById(step.highlightEdge);
-            if (edge) {
-                edge.classList.add('highlighted-edge');
+            if (step.highlightEdge) {
+                const edge = document.getElementById(step.highlightEdge);
+                if (edge) {
+                    edge.classList.add('highlighted-edge');
+                }
             }
+        }
+
+        // Função para destacar o caminho mínimo
+        function highlightPath() {
+            path.forEach(nodeId => {
+                const node = document.getElementById(nodeId);
+                if (node) {
+                    node.classList.add('highlight');
+                }
+            });
         }
 
         document.getElementById('nextBtn').addEventListener('click', () => {
@@ -217,7 +220,8 @@
 
                 currentStep++;
             } else {
-                document.getElementById('description').innerText = 'A busca terminou!';
+                document.getElementById('description').innerText = 'A busca terminou! Destacando o caminho mínimo.';
+                highlightPath(); // Destacar o caminho mínimo
             }
         });
     </script>
