@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Velha com Minimax</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+  <div id="container">
+    <div id="game-board-container">
+      <h1>Jogo da Velha</h1>
+      <div id="game-board">
+        <div class="cell" id="0"></div>
+        <div class="cell" id="1"></div>
+        <div class="cell" id="2"></div>
+        <div class="cell" id="3"></div>
+        <div class="cell" id="4"></div>
+        <div class="cell" id="5"></div>
+        <div class="cell" id="6"></div>
+        <div class="cell" id="7"></div>
+        <div class="cell" id="8"></div>
+      </div>
+      <div id="button-container">
+        <button id="play-vs-computer-button">Jogar com o Computador</button>
+        <button id="play-two-players-button">Jogar com outro Jogador</button>
+        <button id="reset-button">Reiniciar</button>
+      </div>
+      <div id="status"></div>
+    </div>
+
+    <div id="tree">
+      <h3>Próximas Possibilidades</h3>
+      <ul id="tree-root"></ul>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+
+</body>
+
+</html>

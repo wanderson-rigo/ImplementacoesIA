@@ -1,0 +1,185 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  #container {
+    flex-direction: row;
+  }
+}
+
+#game-board-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f4f4f4;
+  border-bottom: 1px solid #ccc;
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  #game-board-container {
+    width: 40%;
+    border-right: 1px solid #ccc;
+    border-bottom: none;
+  }
+}
+
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 20px;
+}
+
+.cell {
+  width: 100%;
+  padding-bottom: 100%;
+  background-color: #fff;
+  border: 2px solid #ccc;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.cell::after {
+  content: attr(data-value);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3em;
+}
+
+.cell.X::after {
+  color: blue;
+}
+
+.cell.O::after {
+  color: red;
+}
+
+.cell:hover {
+  background-color: #eaeaea;
+}
+
+.winning-cell {
+  background-color: #d4edda !important;
+  border-color: #c3e6cb !important;
+}
+
+#button-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  margin-top: 10px;
+}
+
+button {
+  flex: 1 1 100%;
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  button {
+    flex: 1 1 auto;
+    margin: 0 5px;
+  }
+}
+
+#play-vs-computer-button {
+  background-color: #28a745;
+  color: white;
+}
+
+#play-two-players-button {
+  background-color: #17a2b8;
+  color: white;
+}
+
+#reset-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+#status {
+  margin-top: 20px;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+#tree {
+  width: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  #tree {
+    width: 60%;
+  }
+}
+
+#tree ul {
+  list-style-type: none;
+}
+
+.mini-board {
+  display: grid;
+  grid-template-columns: repeat(3, 20px);
+  grid-template-rows: repeat(3, 20px);
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.mini-cell {
+  width: 20px;
+  height: 20px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  font-size: 0.8em;
+  text-align: center;
+  line-height: 20px;
+}
+
+.mini-cell::after {
+  content: attr(data-value);
+  font-size: 0.8em;
+  color: inherit;
+}
+
+.mini-cell.X {
+  color: blue;
+}
+
+.mini-cell.O {
+  color: red;
+}
+
+.played-move {
+  background-color: #d3d3d3;
+}
