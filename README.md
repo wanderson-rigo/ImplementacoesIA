@@ -7,5 +7,7 @@ Esboços e Implementações da disciplina de Inteligência Artificial - Computa�
 Buscas:
 
 - <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaBFS.html">Busca em Extensão/Largura (Breadth-First Search - BFS)</a>
+<!---
 - <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaUCS3.html">Busca Custo Uniforme (Uniform Cost Search - UCS)</a>
+ --->
 - <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaDFS.html">Busca em Profundidade (Depth First Search - DFS)</a>
