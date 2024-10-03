@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A* Search Visualization - Arad to Bucharest</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .node {
+            stroke: #333;
+            stroke-width: 2px;
+        }
+        .highlight {
+            stroke: #ff0000;
+            stroke-width: 4px;
+        }
+        .fringe {
+            fill: yellow;
+        }
+        .explored {
+            fill: green;
+        }
+        .final {
+            fill: red;
+        }
+        text {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            pointer-events: none;
+        }
+        .description {
+            background-color: yellow;
+            padding: 10px;
+            border: 1px solid #ccc;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Busca A* de Arad para Bucareste</h1>
+<p>Este grafo mostra a execução passo a passo da busca A* com a heurística da distância em linha reta até Bucareste.</p>
+<div id="graph"></div>
+<div class="description" id="description">Clique em "Próximo" para começar a busca.</div>
+<button id="next">Próximo</button>
+
+<script>
+    const nodes = [
+        { id: 'Arad', x: 100, y: 200, h: 366 },
+        { id: 'Sibiu', x: 200, y: 100, h: 253 },
+        { id: 'Timisoara', x: 100, y: 300, h: 329 },
+        { id: 'Zerind', x: 50, y: 100, h: 374 },
+        { id: 'Oradea', x: 150, y: 50, h: 380 },
+        { id: 'Fagaras', x: 300, y: 150, h: 176 },
+        { id: 'Rimnicu Vilcea', x: 250, y: 200, h: 193 },
+        { id: 'Pitesti', x: 350, y: 250, h: 100 },
+        { id: 'Craiova', x: 200, y: 350, h: 160 },
+        { id: 'Bucharest', x: 400, y: 300, h: 0 },
+    ];
+
+    const links = [
+        { source: 'Arad', target: 'Sibiu', cost: 140 },
+        { source: 'Arad', target: 'Timisoara', cost: 118 },
+        { source: 'Arad', target: 'Zerind', cost: 75 },
+        { source: 'Zerind', target: 'Oradea', cost: 71 },
+        { source: 'Sibiu', target: 'Oradea', cost: 151 },
+        { source: 'Sibiu', target: 'Fagaras', cost: 99 },
+        { source: 'Sibiu', target: 'Rimnicu Vilcea', cost: 80 },
+        { source: 'Rimnicu Vilcea', target: 'Pitesti', cost: 97 },
+        { source: 'Rimnicu Vilcea', target: 'Craiova', cost: 146 },
+        { source: 'Pitesti', target: 'Bucharest', cost: 101 },
+        { source: 'Fagaras', target: 'Bucharest', cost: 211 },
+    ];
+
+    const svg = d3.select("#graph").append("svg")
+        .attr("width", 500)
+        .attr("height", 400);
+
+    // Adicionando as arestas (links)
+    const linkGroup = svg.append("g").selectAll("line")
+        .data(links)
+        .enter().append("line")
+        .attr("x1", d => nodes.find(n => n.id === d.source).x)
+        .attr("y1", d => nodes.find(n => n.id === d.source).y)
+        .attr("x2", d => nodes.find(n => n.id === d.target).x)
+        .attr("y2", d => nodes.find(n => n.id === d.target).y)
+        .attr("stroke", "#999")
+        .attr("stroke-width", 2);
+
+    // Exibindo as distâncias nas arestas
+    svg.append("g").selectAll("text")
+        .data(links)
+        .enter().append("text")
+        .attr("x", d => (nodes.find(n => n.id === d.source).x + nodes.find(n => n.id === d.target).x) / 2)
+        .attr("y", d => (nodes.find(n => n.id === d.source).y + nodes.find(n => n.id === d.target).y) / 2)
+        .attr("text-anchor", "middle")
+        .text(d => d.cost);
+
+    // Adicionando os nós (nodes)
+    const nodeGroup = svg.append("g").selectAll("circle")
+        .data(nodes)
+        .enter().append("circle")
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y)
+        .attr("r", 20)
+        .attr("class", "node")
+        .attr("fill", "lightblue");
+
+    // Exibindo os rótulos dos nós
+    const labels = svg.append("g").selectAll("text")
+        .data(nodes)
+        .enter().append("text")
+        .attr("x", d => d.x)
+        .attr("y", d => d.y - 25)
+        .attr("text-anchor", "middle")
+        .text(d => d.id);
+
+    let step = 0;
+    const steps = [
+        {
+            description: "Inicialização: Começamos em Arad com custo estimado f(Arad) = g(Arad) + h(Arad) = 0 + 366 = 366.",
+            fringe: [{ node: 'Arad', g: 0, f: 366 }],
+            explored: [],
+            currentNode: 'Arad'
+        },
+        {
+            description: "Explorando Arad: Adicionando Sibiu (g=140, f=393), Timisoara (g=118, f=447), e Zerind (g=75, f=449) à fringe.",
+            fringe: [
+                { node: 'Sibiu', g: 140, f: 393 },
+                { node: 'Timisoara', g: 118, f: 447 },
+                { node: 'Zerind', g: 75, f: 449 }
+            ],
+            explored: ['Arad'],
+            currentNode: 'Sibiu'
+        },
+        {
+            description: "Explorando Sibiu: Adicionando Fagaras (g=239, f=415), Rimnicu Vilcea (g=220, f=413), e Oradea (g=291, f=671) à fringe.",
+            fringe: [
+                { node: 'Fagaras', g: 239, f: 415 },
+                { node: 'Rimnicu Vilcea', g: 220, f: 413 },
+                { node: 'Timisoara', g: 118, f: 447 },
+                { node: 'Zerind', g: 75, f: 449 },
+                { node: 'Oradea', g: 291, f: 671 }
+            ],
+            explored: ['Arad', 'Sibiu'],
+            currentNode: 'Rimnicu Vilcea'
+        },
+        {
+            description: "Explorando Rimnicu Vilcea: Adicionando Pitesti (g=317, f=417) e Craiova (g=366, f=526) à fringe.",
+            fringe: [
+                { node: 'Fagaras', g: 239, f: 415 },
+                { node: 'Pitesti', g: 317, f: 417 },
+                { node: 'Timisoara', g: 118, f: 447 },
+                { node: 'Zerind', g: 75, f: 449 },
+                { node: 'Craiova', g: 366, f: 526 },
+                { node: 'Oradea', g: 291, f: 671 }
+            ],
+            explored: ['Arad', 'Sibiu', 'Rimnicu Vilcea'],
+            currentNode: 'Pitesti'
+        },
+        {
+            description: "Explorando Pitesti: Encontramos Bucareste (g=418, f=418).",
+            fringe: [
+                { node: 'Fagaras', g: 239, f: 415 },
+                { node: 'Bucharest', g: 418, f: 418 },
+                { node: 'Timisoara', g: 118, f: 447 },
+                { node: 'Zerind', g: 75, f: 449 },
+                { node: 'Craiova', g: 366, f: 526 },
+                { node: 'Oradea', g: 291, f: 671 }
+            ],
+            explored: ['Arad', 'Sibiu', 'Rimnicu Vilcea', 'Pitesti'],
+            currentNode: 'Bucharest'
+        },
+        {
+            description: "Caminho encontrado: Arad → Sibiu → Rimnicu Vilcea → Pitesti → Bucareste.",
+            fringe: [],
+            explored: ['Arad', 'Sibiu', 'Rimnicu Vilcea', 'Pitesti', 'Bucharest'],
+            currentNode: 'Bucharest',
+            finalPath: ['Arad', 'Sibiu', 'Rimnicu Vilcea', 'Pitesti', 'Bucharest']
+        }
+    ];
+
+    function updateVisualization() {
+        const currentStep = steps[step];
+
+        // Atualizar descrições
+        d3.select("#description").text(currentStep.description);
+
+        // Destacar nó atual
+        svg.selectAll("circle")
+            .classed("highlight", d => d.id === currentStep.currentNode);
+
+        // Atualizar fringe e mostrar valores g e f acumulados
+        svg.selectAll("circle")
+            .classed("fringe", d => currentStep.fringe.map(f => f.node).includes(d.id))
+            .classed("explored", d => currentStep.explored.includes(d.id));
+
+        svg.selectAll(".fringe-text").remove(); // Remover valores anteriores da fringe
+
+        currentStep.fringe.forEach(f => {
+            const node = nodes.find(n => n.id === f.node);
+            svg.append("text")
+                .attr("class", "fringe-text")
+                .attr("x", node.x)
+                .attr("y", node.y + 35)
+                .attr("text-anchor", "middle")
+                .text(`f=${f.f}`);
+        });
+
+        // Desenhar caminho final
+        if (currentStep.finalPath) {
+            linkGroup
+                .attr("stroke", d => currentStep.finalPath.includes(d.source) && currentStep.finalPath.includes(d.target) ? "red" : "#999")
+                .attr("stroke-width", d => currentStep.finalPath.includes(d.source) && currentStep.finalPath.includes(d.target) ? 4 : 2);
+        }
+    }
+
+    document.getElementById("next").addEventListener("click", () => {
+        if (step < steps.length - 1) {
+            step++;
+            updateVisualization();
+        }
+    });
+
+    updateVisualization();
+</script>
+
+</body>
+</html>

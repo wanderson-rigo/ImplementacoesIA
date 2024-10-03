@@ -6,6 +6,27 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Simulação UCS Passo a Passo com Grafo</title>
         <style>
+            .container {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+
+            .content {
+                flex-grow: 1;
+                margin-right: 20px;
+            }
+
+            .image-container {
+                width: 400px;
+                /* Ajuste o tamanho da imagem */
+            }
+
+            .image-container img {
+                width: 100%;
+                height: auto;
+            }
+
             .node {
                 display: inline-block;
                 margin: 10px;
@@ -40,12 +61,10 @@
 
             .highlight {
                 fill: yellow;
-                /* Cor do nó do caminho mínimo */
             }
 
             .visited {
                 fill: lightgreen;
-                /* Cor dos nós explorados */
             }
 
             .edge {
@@ -63,151 +82,442 @@
     <body>
         <h1>Simulação UCS Passo a Passo</h1>
 
-        <div id="description">Clique em "Próximo" para iniciar a simulação.</div>
+        <div class="container">
+            <div class="content">
+                <div id="stepDisplay"></div>
+                <div id="description">Clique em "Próximo" para iniciar a simulação.</div>
+                <div id="childNodes"></div> <!-- Exibição dos filhos -->
+                <div id="fringeDisplay"></div> <!-- Exibição da fringe -->
+                <div id="orderedDisplay"></div> <!-- Exibição da ordem -->
+                <div id="exploredDisplay" class="explored"></div> <!-- Exibição dos explorados -->
+                <button id="nextBtn">Próximo</button>
 
-        <div class="fringe">
-            <strong>Fringe:</strong>
-            <span id="fringe"></span>
+                <!-- Área de desenho do grafo -->
+                <svg width="600" height="300" id="graph">
+                    <!-- Arestas com pesos -->
+                    <line x1="300" y1="50" x2="150" y2="150" class="edge" id="edgeAB"></line>
+                    <text x="210" y="90">5</text>
+
+                    <line x1="300" y1="50" x2="300" y2="150" class="edge" id="edgeAC"></line>
+                    <text x="310" y="100">9</text>
+
+                    <line x1="300" y1="50" x2="450" y2="150" class="edge" id="edgeAD"></line>
+                    <text x="380" y="90">7</text>
+
+                    <line x1="150" y1="150" x2="50" y2="250" class="edge" id="edgeBE"></line>
+                    <text x="80" y="200">10</text>
+
+                    <line x1="150" y1="150" x2="125" y2="250" class="edge" id="edgeBF"></line>
+                    <text x="160" y="200">8</text>
+
+                    <line x1="150" y1="150" x2="200" y2="250" class="edge" id="edgeBG"></line>
+                    <text x="190" y="200">7</text>
+
+                    <line x1="300" y1="150" x2="250" y2="250" class="edge" id="edgeCH"></line>
+                    <text x="265" y="200">3</text>
+
+                    <line x1="300" y1="150" x2="300" y2="250" class="edge" id="edgeCI"></line>
+                    <text x="305" y="200">2</text>
+
+                    <line x1="300" y1="150" x2="350" y2="250" class="edge" id="edgeCJ"></line>
+                    <text x="330" y="200">1</text>
+
+                    <line x1="450" y1="150" x2="550" y2="250" class="edge" id="edgeDM"></line>
+                    <text x="500" y="200">7</text>
+
+                    <line x1="450" y1="150" x2="400" y2="250" class="edge" id="edgeDK"></line>
+                    <text x="400" y="200">10</text>
+
+                    <line x1="450" y1="150" x2="500" y2="250" class="edge" id="edgeDL"></line>
+                    <text x="460" y="200">6</text>
+
+                    <!-- Nós -->
+                    <circle cx="300" cy="50" r="20" id="A" class="node"></circle>
+                    <text x="290" y="55">A</text>
+
+                    <circle cx="150" cy="150" r="20" id="B" class="node"></circle>
+                    <text x="140" y="155">B</text>
+
+                    <circle cx="300" cy="150" r="20" id="C" class="node"></circle>
+                    <text x="290" y="155">C</text>
+
+                    <circle cx="450" cy="150" r="20" id="D" class="node"></circle>
+                    <text x="440" y="155">D</text>
+
+                    <circle cx="50" cy="250" r="20" id="E" class="node"></circle>
+                    <text x="40" y="255">E</text>
+
+                    <circle cx="125" cy="250" r="20" id="F" class="node"></circle>
+                    <text x="125" y="255">F</text>
+
+                    <circle cx="200" cy="250" r="20" id="G" class="node"></circle>
+                    <text x="195" y="255">G</text>
+
+                    <circle cx="250" cy="250" r="20" id="H" class="node"></circle>
+                    <text x="250" y="255">H</text>
+
+                    <circle cx="300" cy="250" r="20" id="I" class="node"></circle>
+                    <text x="300" y="255">I</text>
+
+                    <circle cx="350" cy="250" r="20" id="J" class="node"></circle>
+                    <text x="340" y="255">J</text>
+
+                    <circle cx="400" cy="250" r="20" id="K" class="node"></circle>
+                    <text x="390" y="255">K</text>
+
+                    <circle cx="500" cy="250" r="20" id="L" class="node"></circle>
+                    <text x="490" y="255">L</text>
+
+                    <circle cx="550" cy="250" r="20" id="M" class="node"></circle>
+                    <text x="540" y="255">M</text>
+
+                </svg>
+
+            </div>
+
+            <!-- Contêiner do lado direito para a imagem -->
+            <div id="image-container">
+                <button onclick="showNextStep()">Próximo Passo</button>
+                <table id="stepsTable" border="1" cellpadding="10" cellspacing="0" style="width: 100%; text-align: center; font-size: 10px;">
+                    <thead>
+                      <tr>
+                        <th>Passo</th>
+                        <th>Nó Expandido</th>
+                        <th>Filhos</th>
+                        <th>Fringe Antes da Ordenação</th>
+                        <th>Fringe Após a Ordenação</th>
+                        <th>Nós Explorados</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>1</td>
+                        <td>A</td>
+                        <td>B (5), C (9), D (7)</td>
+                        <td>B (5), C (9), D (7)</td>
+                        <td>B (5), D (7), C (9)</td>
+                        <td>A</td>
+                      </tr>
+                      <tr>
+                        <td>2</td>
+                        <td>B</td>
+                        <td>E (15), F (13), G (12)</td>
+                        <td>D (7), C (9), E (15), F (13), G (12)</td>
+                        <td>D (7), C (9), G (12), F (13), E (15)</td>
+                        <td>A, B</td>
+                      </tr>
+                      <tr>
+                        <td>3</td>
+                        <td>D</td>
+                        <td>K (17), L (13), M (14)</td>
+                        <td>C (9), G (12), F (13), E (15), K (17), L (13), M (14)</td>
+                        <td>C (9), G (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>A, B, D</td>
+                      </tr>
+                      <tr>
+                        <td>4</td>
+                        <td>C</td>
+                        <td>H (12), I (11), J (10)</td>
+                        <td>G (12), L (13), F (13), M (14), E (15), K (17), H (12), I (11), J (10)</td>
+                        <td>J (10), I (11), G (12), H (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>A, B, D, C</td>
+                      </tr>
+                      <tr>
+                        <td>5</td>
+                        <td>J</td>
+                        <td>Nenhum</td>
+                        <td>I (11), G (12), H (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>I (11), G (12), H (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>A, B, D, C, J</td>
+                      </tr>
+                      <tr>
+                        <td>6</td>
+                        <td>I</td>
+                        <td>Nenhum</td>
+                        <td>G (12), H (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>G (12), H (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>A, B, D, C, J, I</td>
+                      </tr>
+                      <tr>
+                        <td>7</td>
+                        <td>G</td>
+                        <td>Nenhum</td>
+                        <td>H (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>H (12), L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>A, B, D, C, J, I, G</td>
+                      </tr>
+                      <tr>
+                        <td>8</td>
+                        <td>H</td>
+                        <td>Nenhum</td>
+                        <td>L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>L (13), F (13), M (14), E (15), K (17)</td>
+                        <td>A, B, D, C, J, I, G, H</td>
+                      </tr>
+                      <tr>
+                        <td>9</td>
+                        <td>L</td>
+                        <td>Nenhum</td>
+                        <td>F (13), M (14), E (15), K (17)</td>
+                        <td>F (13), M (14), E (15), K (17)</td>
+                        <td>A, B, D, C, J, I, G, H, L</td>
+                      </tr>
+                      <tr>
+                        <td>10</td>
+                        <td>F</td>
+                        <td>Nenhum</td>
+                        <td>M (14), E (15), K (17)</td>
+                        <td>M (14), E (15), K (17)</td>
+                        <td>A, B, D, C, J, I, G, H, L, F</td>
+                      </tr>
+                      <tr>
+                        <td>11</td>
+                        <td>M</td>
+                        <td>Nenhum</td>
+                        <td>E (15), K (17)</td>
+                        <td>E (15), K (17)</td>
+                        <td>A, B, D, C, J, I, G, H, L, F, M</td>
+                      </tr>
+                      <tr>
+                        <td>12</td>
+                        <td>E</td>
+                        <td>Nenhum</td>
+                        <td>K (17)</td>
+                        <td>K (17)</td>
+                        <td>A, B, D, C, J, I, G, H, L, F, M, E</td>
+                      </tr>
+                      <tr>
+                        <td>13</td>
+                        <td>K</td>
+                        <td>Nenhum</td>
+                        <td>(vazia)</td>
+                        <td>(vazia)</td>
+                        <td>A, B, D, C, J, I, G, H, L, F, M, E, K</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  <script>
+                    let currentStep = 0;
+                    const rows = document.querySelectorAll('#stepsTable tbody tr');
+            
+                    // Oculta todas as linhas inicialmente
+                    rows.forEach(row => row.style.display = 'none');
+            
+                    // Função para mostrar o próximo passo
+                    function showNextStep() {
+                        if (currentStep < rows.length) {
+                            rows[currentStep].style.display = 'table-row';
+                            currentStep++;
+                        } else {
+                            alert("Todos os passos foram exibidos.");
+                        }
+                    }
+                </script>
+                  
+            </div>
+
         </div>
-
-        <div class="explored">
-            <strong>Explored:</strong>
-            <span id="explored"></span>
-        </div>
-
-        <button id="nextBtn">Próximo</button>
-
-        <!-- Área de desenho do grafo -->
-        <svg width="600" height="400" id="graph">
-            <!-- Nós -->
-            <circle cx="300" cy="50" r="20" id="A" class="node"></circle>
-            <text x="290" y="55">A</text>
-
-            <circle cx="150" cy="150" r="20" id="B" class="node"></circle>
-            <text x="140" y="155">B</text>
-
-            <circle cx="300" cy="150" r="20" id="C" class="node"></circle>
-            <text x="290" y="155">C</text>
-
-            <circle cx="450" cy="150" r="20" id="D" class="node"></circle>
-            <text x="440" y="155">D</text>
-
-            <circle cx="50" cy="250" r="20" id="E" class="node"></circle>
-            <text x="40" y="255">E</text>
-
-            <circle cx="125" cy="250" r="20" id="F" class="node"></circle>
-            <text x="125" y="255">F</text>
-
-            <circle cx="200" cy="250" r="20" id="G" class="node"></circle>
-            <text x="200" y="255">G</text>
-
-            <circle cx="250" cy="250" r="20" id="H" class="node"></circle>
-            <text x="260" y="255">H</text>
-
-            <circle cx="300" cy="250" r="20" id="I" class="node"></circle>
-            <text x="310" y="255">I</text>
-
-            <circle cx="350" cy="250" r="20" id="J" class="node"></circle>
-            <text x="340" y="255">J</text>
-
-            <circle cx="550" cy="250" r="20" id="M" class="node"></circle>
-            <text x="540" y="255">M</text>
-
-            <circle cx="400" cy="250" r="20" id="K" class="node"></circle>
-            <text x="390" y="255">K</text>
-
-            <circle cx="500" cy="250" r="20" id="L" class="node"></circle>
-            <text x="490" y="255">L</text>
-
-            <!-- Arestas com pesos -->
-            <line x1="300" y1="50" x2="150" y2="150" class="edge" id="edgeAB"></line>
-            <text x="210" y="90">5</text>
-
-            <line x1="300" y1="50" x2="300" y2="150" class="edge" id="edgeAC"></line>
-            <text x="310" y="100">9</text>
-
-            <line x1="300" y1="50" x2="450" y2="150" class="edge" id="edgeAD"></line>
-            <text x="380" y="90">7</text>
-
-            <line x1="150" y1="150" x2="50" y2="250" class="edge" id="edgeBE"></line>
-            <text x="90" y="200">10</text>
-
-            <line x1="150" y1="150" x2="125" y2="250" class="edge" id="edgeBF"></line>
-            <text x="160" y="200">8</text>
-
-            <line x1="150" y1="150" x2="200" y2="250" class="edge" id="edgeBG"></line>
-            <text x="190" y="210">7</text>
-
-            <line x1="300" y1="150" x2="250" y2="250" class="edge" id="edgeCH"></line>
-            <text x="275" y="210">3</text>
-
-            <line x1="300" y1="150" x2="300" y2="250" class="edge" id="edgeCI"></line>
-            <text x="300" y="200">2</text>
-
-            <line x1="300" y1="150" x2="350" y2="250" class="edge" id="edgeCJ"></line>
-            <text x="330" y="200">1</text>
-
-            <line x1="450" y1="150" x2="550" y2="250" class="edge" id="edgeDM"></line>
-            <text x="500" y="200">7</text>
-
-            <line x1="450" y1="150" x2="400" y2="250" class="edge" id="edgeDK"></line>
-            <text x="400" y="200">10</text>
-
-            <line x1="450" y1="150" x2="500" y2="250" class="edge" id="edgeDL"></line>
-            <text x="460" y="200">6</text>
-
-        </svg>
 
         <script>
             // Passos da simulação com as mudanças da fringe e explored
             const steps = [
-                { fringe: ['A (0)'], explored: [], description: 'Inicializando com o nó A.', highlightNode: 'A' },
-                { fringe: ['B (5)', 'C (9)', 'D (7)'], explored: ['A'], description: 'Expandindo o nó A. Filhos: B(5), C(9), D(7). A fringe agora contém: B (5), C (9), D (7). Ordenamos: B (5), D (7), C (9).', highlightNode: 'B', highlightEdge: 'edgeAB' },
-                { fringe: ['D (7)', 'C (9)', 'E (15)', 'F (13)', 'G (12)'], explored: ['A', 'B'], description: 'Expandindo o nó B. Filhos: E(15), F(13), G(12). A fringe agora contém: D (7), C (9), E (15), F (13), G (12). Ordenamos: D (7), C (9), G (12), F (13), E (15).', highlightNode: 'D', highlightEdge: 'edgeAD' },
-                { fringe: ['H (12)', 'I (12)', 'J (10)', 'G (12)'], explored: ['A', 'B', 'D'], description: 'Expandindo o nó C. Filhos: H(12), I(11), J(10). A fringe agora contém: D (7), C (9), H (12), I (12), J (10), G (12). Ordenamos: D (7), J (10), H (12), G (12), I (12).', highlightNode: 'H', highlightEdge: 'edgeCH' },
-                { fringe: ['G (12)', 'I (12)', 'K (20)'], explored: ['A', 'B', 'C', 'D', 'J'], description: 'Expandindo o nó J. Sem filhos. A fringe agora contém: J (10), H (12), G (12), I (12). Ordenamos: H (12), G (12), I (12).', highlightNode: 'J' },
-                { fringe: ['I (12)', 'K (20)'], explored: ['A', 'B', 'C', 'D', 'J', 'H'], description: 'Expandindo o nó H. Sem filhos. A fringe agora contém: H (12). Ordenamos: H (12).', highlightNode: 'H' },
-                { fringe: ['K (20)'], explored: ['A', 'B', 'C', 'D', 'J', 'H', 'G'], description: 'Expandindo o nó G. Sem filhos. A fringe agora contém: G (12). Ordenamos: G (12).', highlightNode: 'G' },
-                { fringe: [], explored: ['A', 'B', 'C', 'D', 'J', 'H', 'G', 'I'], description: 'Expandindo o nó I. Sem filhos. A fringe agora contém: I (12). Ordenamos: I (12).', highlightNode: 'I' },
-                { fringe: [], explored: ['A', 'B', 'C', 'D', 'J', 'H', 'G', 'I', 'K'], description: 'Expandindo o nó K. Sem filhos. A fringe agora contém: K (20). Ordenamos: K (20). Algoritmo completo.', highlightNode: 'K' }
+                {
+                    step: ['A (0)'],//1
+                    explored: [],
+                    description: 'Inicializando com o nó A.',
+                    childNodes: '',
+                    fringe: 'A (0)',
+                    ordered: 'A (0)',
+                    highlightNode: 'A',
+                    highlightEdge: []
+                },
+                {
+                    step: ['B (5)', 'C (9)', 'D (7)'],//2
+                    explored: ['A'],
+                    description: 'Expandindo o nó A.',
+                    childNodes: 'B(5), C(9), D(7).',
+                    fringe: 'B (5), C (9), D (7)',
+                    ordered: 'B (5), D (7), C (9)',
+                    highlightNode: 'A',
+                    highlightEdge: ['edgeAB', 'edgeAC', 'edgeAD']
+                },
+                {
+                    step: ['D (7)', 'C (9)', 'G (12)', 'F (13)', 'E (15)'],//3
+                    explored: ['A', 'B'],
+                    description: 'Expandindo o nó B.',
+                    childNodes: 'E(15), F(13), G(12).',
+                    fringe: 'D (7), C (9), G (12), F (13), E (15)',
+                    ordered: 'D (7), C (9), G (12), F (13), E (15)',
+                    highlightNode: 'B',
+                    highlightEdge: ['edgeBE', 'edgeBF', 'edgeBG']
+                },
+                {
+                    step: ['C (9)', 'G (12)', 'F (13)', 'E (15)'],//4
+                    explored: ['A', 'B', 'D'],
+                    description: 'Expandindo o nó D.',
+                    childNodes: 'K(17), L(13), M(14).',
+                    fringe: 'C (9), G (12), F (13), E (15), K (17), L (13), M (14).',
+                    ordered: 'C (9), G (12), L (13), F (13), M (14), E (15), K (17).',
+                    highlightNode: 'D',
+                    highlightEdge: ['edgeDK', 'edgeDL', 'edgeDM']
+                },
+                {
+                    step: ['G (12)', 'F (13)', 'E (15)'],//5
+                    explored: ['A', 'B', 'D', 'C'],
+                    description: 'Expandindo o nó C.',
+                    childNodes: 'H(12), I(11), J(10).',
+                    fringe: 'G (12), L (13), F (13), M (14), E (15), K (17), H (12), I (11), J (10).',
+                    ordered: 'J (10), I (11), G (12), H (12), L (13), F (13), M (14), E (15), K (17).',
+                    highlightNode: 'C',
+                    highlightEdge: ['edgeCH', 'edgeCI', 'edgeCJ']
+                },
+                {
+                    step: ['F (13)', 'E (15)'],//6
+                    explored: ['A', 'B', 'D', 'C', 'J'],
+                    description: 'Expandindo o nó J.',
+                    childNodes: 'Nenhum.',
+                    fringe: 'I (11), G (12), H (12), L (13), F (13), M (14), E (15), K (17).',
+                    ordered: 'I (11), G (12), H (12), L (13), F (13), M (14), E (15), K (17)',
+                    highlightNode: 'J',
+                    highlightEdge: []
+                },
+                {
+                    step: ['E (15)'],//7
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I'],
+                    description: 'Expandindo o nó I.',
+                    childNodes: 'Nenhum.',
+                    fringe: 'G (12), H (12), L (13), F (13), M (14), E (15), K (17)',
+                    ordered: 'G (12), H (12), L (13), F (13), M (14), E (15), K (17)',
+                    highlightNode: 'I',
+                    highlightEdge: []
+                },
+                {
+                    step: [],//8
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I', 'G'],
+                    description: 'Expandindo o nó G.',
+                    childNodes: '',
+                    fringe: 'H (12), L (13), F (13), M (14), E (15), K (17)',
+                    ordered: 'H (12), L (13), F (13), M (14), E (15), K (17)',
+                    highlightNode: 'G',
+                    highlightEdge: []
+                },
+                {
+                    step: [],//9
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I', 'G', 'H'],
+                    description: 'Expandindo o nó H.',
+                    childNodes: '',
+                    fringe: 'L (13), F (13), M (14), E (15), K (17)',
+                    ordered: 'L (13), F (13), M (14), E (15), K (17)',
+                    highlightNode: 'H',
+                    highlightEdge: []
+                },
+                {
+                    step: [],//10
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I', 'G', 'H', 'L'],
+                    description: 'Expandindo o nó L.',
+                    childNodes: '',
+                    fringe: 'F (13), M (14), E (15), K (17)',
+                    ordered: 'F (13), M (14), E (15), K (17)',
+                    highlightNode: 'L',
+                    highlightEdge: []
+                },
+                {
+                    step: [],//11
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I', 'G', 'H', 'L', 'F'],
+                    description: 'Expandindo o nó F.',
+                    childNodes: '',
+                    fringe: 'M (14), E (15), K (17)',
+                    ordered: 'M (14), E (15), K (17)',
+                    highlightNode: 'F',
+                    highlightEdge: []
+                },
+                {
+                    step: [],//12
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I', 'G', 'H', 'L', 'F', 'M'],
+                    description: 'Expandindo o nó M.',
+                    childNodes: '',
+                    fringe: 'E (15), K (17)',
+                    ordered: 'E (15), K (17)',
+                    highlightNode: 'M',
+                    highlightEdge: []
+                },
+                {
+                    step: [],//13
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I', 'G', 'H', 'L', 'F', 'M', 'E'],
+                    description: 'Expandindo o nó E.',
+                    childNodes: '',
+                    fringe: 'K (17)',
+                    ordered: 'K (17)',
+                    highlightNode: 'E',
+                    highlightEdge: []
+                },
+                {
+                    step: [],//14
+                    explored: ['A', 'B', 'D', 'C', 'J', 'I', 'G', 'H', 'L', 'F', 'M', 'E', 'K'],
+                    description: 'Expandindo o nó K.',
+                    childNodes: '',
+                    fringe: '',
+                    ordered: '',
+                    highlightNode: 'K',
+                    highlightEdge: []
+                },
             ];
-
-
 
 
             let stepIndex = 0;
 
-            function updateDisplay() {
-                const step = steps[stepIndex];
+            document.getElementById('nextBtn').addEventListener('click', function () {
+                if (stepIndex < steps.length) {
+                    const step = steps[stepIndex];
 
-                // Atualiza a lista de fringe e explored
-                document.getElementById('fringe').innerText = step.fringe.join(', ');
-                document.getElementById('explored').innerText = step.explored.join(', ');
-                document.getElementById('description').innerText = step.description;
+                    // Limpa destaques anteriores
+                    clearHighlights();
 
-                // Reseta todos os nós
-                document.querySelectorAll('.node').forEach(node => {
-                    node.classList.remove('highlight');
-                    node.classList.remove('visited');
-                });
+                    // Atualiza a descrição e elementos
+                    document.getElementById('description').textContent = step.description;
+                    document.getElementById('childNodes').textContent = 'Filhos:' + step.childNodes;
+                    document.getElementById('fringeDisplay').textContent = 'Fringe: ' + step.fringe;
+                    document.getElementById('exploredDisplay').textContent = 'Explorados: ' + step.explored.join(', ');
 
-                // Destaca o nó atual
-                if (step.highlightNode) {
-                    document.getElementById(step.highlightNode).classList.add('highlight');
+                    // Destaca nós e arestas
+                    highlightNode(step.highlightNode);
+                    step.highlightEdge.forEach(edge => highlightEdge(edge));
+
+                    // Atualiza o passo atual
+                    document.getElementById('stepDisplay').textContent = 'Passo: ' + (stepIndex + 1) + ' de ' + steps.length;
+                    document.getElementById('orderedDisplay').textContent = 'Fringe Ordenada: ' + step.ordered;
+
+                    // Incrementa o índice do passo
+                    stepIndex++;
                 }
+            });
 
-                // Destaca a aresta atual
-                if (step.highlightEdge) {
-                    document.getElementById(step.highlightEdge).classList.add('highlighted-edge');
-                }
-
-                stepIndex++;
-                if (stepIndex >= steps.length) {
-                    document.getElementById('nextBtn').disabled = true; // Desabilita o botão ao final
+            function highlightNode(node) {
+                const nodeElement = document.getElementById(node);
+                if (nodeElement) {
+                    nodeElement.style.fill = 'yellow'; // Cor de destaque
                 }
             }
 
-            document.getElementById('nextBtn').addEventListener('click', updateDisplay);
+            function highlightEdge(edge) {
+                const edgeElement = document.getElementById(edge);
+                if (edgeElement) {
+                    edgeElement.style.stroke = 'yellow'; // Cor de destaque
+                }
+            }
+
+            function clearHighlights() {
+                const nodes = document.querySelectorAll('circle');
+                const edges = document.querySelectorAll('line');
+
+                nodes.forEach(node => {
+                    node.style.fill = 'rgb(216, 222, 226)'; // Restaura a cor original
+                });
+                edges.forEach(edge => {
+                    edge.style.stroke = 'gray'; // Restaura a cor original
+                });
+            }
         </script>
     </body>
 
