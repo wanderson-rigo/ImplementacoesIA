@@ -76,6 +76,10 @@
                 stroke: red;
                 stroke-width: 4px;
             }
+
+            td {
+                white-space: nowrap; /* Impede que o conteúdo seja quebrado em várias linhas */
+            }
         </style>
     </head>
 
@@ -84,13 +88,13 @@
 
         <div class="container">
             <div class="content">
-                <div id="stepDisplay"></div>
+                <button id="nextBtn" onclick="next(); showNextStep()">Próximo</button>
                 <div id="description">Clique em "Próximo" para iniciar a simulação.</div>
+                <div id="stepDisplay"></div>
                 <div id="childNodes"></div> <!-- Exibição dos filhos -->
                 <div id="fringeDisplay"></div> <!-- Exibição da fringe -->
                 <div id="orderedDisplay"></div> <!-- Exibição da ordem -->
                 <div id="exploredDisplay" class="explored"></div> <!-- Exibição dos explorados -->
-                <button id="nextBtn">Próximo</button>
 
                 <!-- Área de desenho do grafo -->
                 <svg width="600" height="300" id="graph">
@@ -177,8 +181,8 @@
 
             <!-- Contêiner do lado direito para a imagem -->
             <div id="image-container">
-                <button onclick="showNextStep()">Próximo Passo</button>
-                <table id="stepsTable" border="1" cellpadding="10" cellspacing="0" style="width: 100%; text-align: center; font-size: 10px;">
+                <table id="stepsTable" border="1" cellpadding="10" 
+                    cellspacing="0" style="width: 100%; text-align: center; font-size: 10px;">
                     <thead>
                       <tr>
                         <th>Passo</th>
@@ -190,24 +194,32 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr>
-                        <td>1</td>
-                        <td>A</td>
-                        <td>B (5), C (9), D (7)</td>
-                        <td>B (5), C (9), D (7)</td>
-                        <td>B (5), D (7), C (9)</td>
-                        <td>A</td>
-                      </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>A</td>
+                            <td></td>
+                            <td>A(0)</td>
+                            <td>A(0)</td>
+                            <td></td>
+                        </tr>
                       <tr>
                         <td>2</td>
-                        <td>B</td>
-                        <td>E (15), F (13), G (12)</td>
-                        <td>D (7), C (9), E (15), F (13), G (12)</td>
-                        <td>D (7), C (9), G (12), F (13), E (15)</td>
-                        <td>A, B</td>
+                        <td>A</td>
+                        <td>B(5), C(9), D(7)</td>
+                        <td>B(5), C(9), D(7)</td>
+                        <td>B(5), D(7), C(9)</td>
+                        <td>A</td>
                       </tr>
                       <tr>
                         <td>3</td>
+                        <td>B</td>
+                        <td>E(15), F(13), G(12)</td>
+                        <td>D(7), C(9), E(15), F(13), G(12)</td>
+                        <td>D(7), C(9), G(12), F(13), E(15)</td>
+                        <td>A, B</td>
+                      </tr>
+                      <tr>
+                        <td>4</td>
                         <td>D</td>
                         <td>K (17), L (13), M (14)</td>
                         <td>C (9), G (12), F (13), E (15), K (17), L (13), M (14)</td>
@@ -215,7 +227,7 @@
                         <td>A, B, D</td>
                       </tr>
                       <tr>
-                        <td>4</td>
+                        <td>5</td>
                         <td>C</td>
                         <td>H (12), I (11), J (10)</td>
                         <td>G (12), L (13), F (13), M (14), E (15), K (17), H (12), I (11), J (10)</td>
@@ -223,7 +235,7 @@
                         <td>A, B, D, C</td>
                       </tr>
                       <tr>
-                        <td>5</td>
+                        <td>6</td>
                         <td>J</td>
                         <td>Nenhum</td>
                         <td>I (11), G (12), H (12), L (13), F (13), M (14), E (15), K (17)</td>
@@ -231,7 +243,7 @@
                         <td>A, B, D, C, J</td>
                       </tr>
                       <tr>
-                        <td>6</td>
+                        <td>7</td>
                         <td>I</td>
                         <td>Nenhum</td>
                         <td>G (12), H (12), L (13), F (13), M (14), E (15), K (17)</td>
@@ -239,7 +251,7 @@
                         <td>A, B, D, C, J, I</td>
                       </tr>
                       <tr>
-                        <td>7</td>
+                        <td>8</td>
                         <td>G</td>
                         <td>Nenhum</td>
                         <td>H (12), L (13), F (13), M (14), E (15), K (17)</td>
@@ -247,7 +259,7 @@
                         <td>A, B, D, C, J, I, G</td>
                       </tr>
                       <tr>
-                        <td>8</td>
+                        <td>9</td>
                         <td>H</td>
                         <td>Nenhum</td>
                         <td>L (13), F (13), M (14), E (15), K (17)</td>
@@ -255,7 +267,7 @@
                         <td>A, B, D, C, J, I, G, H</td>
                       </tr>
                       <tr>
-                        <td>9</td>
+                        <td>10</td>
                         <td>L</td>
                         <td>Nenhum</td>
                         <td>F (13), M (14), E (15), K (17)</td>
@@ -263,7 +275,7 @@
                         <td>A, B, D, C, J, I, G, H, L</td>
                       </tr>
                       <tr>
-                        <td>10</td>
+                        <td>11</td>
                         <td>F</td>
                         <td>Nenhum</td>
                         <td>M (14), E (15), K (17)</td>
@@ -271,7 +283,7 @@
                         <td>A, B, D, C, J, I, G, H, L, F</td>
                       </tr>
                       <tr>
-                        <td>11</td>
+                        <td>12</td>
                         <td>M</td>
                         <td>Nenhum</td>
                         <td>E (15), K (17)</td>
@@ -279,20 +291,20 @@
                         <td>A, B, D, C, J, I, G, H, L, F, M</td>
                       </tr>
                       <tr>
-                        <td>12</td>
+                        <td>13</td>
                         <td>E</td>
                         <td>Nenhum</td>
                         <td>K (17)</td>
                         <td>K (17)</td>
-                        <td>A, B, D, C, J, I, G, H, L, F, M, E</td>
+                        <td >A, B, D, C, J, I, G, H, L, F, M, E</td>
                       </tr>
                       <tr>
-                        <td>13</td>
+                        <td>14</td>
                         <td>K</td>
                         <td>Nenhum</td>
                         <td>(vazia)</td>
                         <td>(vazia)</td>
-                        <td>A, B, D, C, J, I, G, H, L, F, M, E, K</td>
+                        <td style="white-space: nowrap;">A, B, D, C, J, I, G, H, L, F, M, E, K</td>
                       </tr>
                     </tbody>
                   </table>
@@ -467,7 +479,7 @@
 
             let stepIndex = 0;
 
-            document.getElementById('nextBtn').addEventListener('click', function () {
+            function next() {
                 if (stepIndex < steps.length) {
                     const step = steps[stepIndex];
 
@@ -491,7 +503,7 @@
                     // Incrementa o índice do passo
                     stepIndex++;
                 }
-            });
+            }
 
             function highlightNode(node) {
                 const nodeElement = document.getElementById(node);
