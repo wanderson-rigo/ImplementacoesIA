@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grammar Derivation Visualizer</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        .node {
+            fill: lightblue;
+            stroke: steelblue;
+            stroke-width: 2px;
+        }
+
+        .link {
+            fill: none;
+            stroke: gray;
+            stroke-width: 2px;
+        }
+
+        .highlight {
+            fill: yellow;
+            stroke: red;
+            stroke-width: 4px;
+        }
+
+        text {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Grammar Derivation Visualizer</h1>
+
+<!-- Input for grammar productions -->
+<textarea id="productions" rows="5" cols="50" placeholder="Enter the grammar productions (e.g., S -> aA | bB, A -> a)"></textarea><br>
+<button onclick="generateGraph()">Generate Graph</button><br><br>
+
+<!-- Input for string to be processed -->
+<label for="inputString">Enter input string:</label>
+<input type="text" id="inputString">
+<button onclick="processString()">Process String</button><br><br>
+
+<!-- SVG area for the graph -->
+<svg id="grammarGraph" width="800" height="400"></svg>
+
+<script>
+// Function to parse productions and generate graph
+function generateGraph() {
+    let productions = document.getElementById('productions').value.split(',');
+    let nodes = new Set();
+    let links = [];
+
+    productions.forEach(prod => {
+        let [lhs, rhs] = prod.split('->').map(s => s.trim());
+        let rightSymbols = rhs.split('|').map(s => s.trim());
+
+        // Ensure both lhs and rhs are added properly
+        nodes.add(lhs); // Left-hand side is always a non-terminal
+        rightSymbols.forEach(symbol => {
+            for (let i = 0; i < symbol.length; i++) {
+                let fromNode = i === 0 ? lhs : symbol[i - 1];
+                let toNode = symbol[i];
+                nodes.add(fromNode);
+                nodes.add(toNode);
+                links.push({source: fromNode, target: toNode});
+            }
+        });
+    });
+
+    renderGraph(Array.from(nodes), links);
+}
+
+// Function to render graph using D3.js
+function renderGraph(nodes, links) {
+    d3.select("#grammarGraph").selectAll("*").remove(); // Clear the graph area
+    
+    const svg = d3.select("#grammarGraph");
+    const width = +svg.attr("width");
+    const height = +svg.attr("height");
+
+    // Simulation is simplified here to avoid loops and instability
+    const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d).distance(100))
+        .force("charge", d3.forceManyBody().strength(-100)) // Reduce repulsion strength
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .stop(); // Stop automatic updating to prevent loops
+
+    // Add links (edges)
+    const link = svg.append("g")
+        .attr("class", "links")
+        .selectAll("line")
+        .data(links)
+        .enter().append("line")
+        .attr("class", "link");
+
+    // Add nodes (non-terminals/terminals)
+    const node = svg.append("g")
+        .attr("class", "nodes")
+        .selectAll("circle")
+        .data(nodes)
+        .enter().append("circle")
+        .attr("class", "node")
+        .attr("r", 20)
+        .attr("cx", (d, i) => 100 + i * 150) // Spread out nodes to avoid overlapping
+        .attr("cy", height / 2);
+
+    // Add text labels for nodes
+    const text = svg.append("g")
+        .attr("class", "texts")
+        .selectAll("text")
+        .data(nodes)
+        .enter().append("text")
+        .attr("x", (d, i) => 100 + i * 150)
+        .attr("y", height / 2 + 5)
+        .attr("dy", ".35em")
+        .text(d => d);
+
+    // Manually draw the graph and links based on positions
+    link.attr("x1", d => 100 + nodes.indexOf(d.source) * 150)
+        .attr("y1", height / 2)
+        .attr("x2", d => 100 + nodes.indexOf(d.target) * 150)
+        .attr("y2", height / 2);
+}
+
+// Function to process the string and highlight derivations
+function processString() {
+    const input = document.getElementById('inputString').value;
+    const productions = document.getElementById('productions').value.split(',');
+
+    // Highlight logic can be implemented here...
+    // It will go through each character of the input and highlight the corresponding nodes and links.
+    let currentSymbol = 'S';  // Assume starting symbol is S
+    for (let i = 0; i < input.length; i++) {
+        let symbol = input[i];
+        highlightNode(currentSymbol);
+        currentSymbol = symbol;  // Update the current symbol (this logic can be adjusted based on production rules)
+    }
+}
+
+// Function to highlight a node
+function highlightNode(symbol) {
+    d3.selectAll("circle").filter(d => d === symbol)
+        .classed("highlight", true);
+}
+</script>
+
+</body>
+</html>
