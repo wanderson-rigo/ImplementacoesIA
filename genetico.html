@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrida de Indivíduos - Passo a Passo</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        canvas { border: 1px solid black; }
+    </style>
+</head>
+<body>
+    <h1>Corrida de Indivíduos - Passo a Passo</h1>
+    <canvas id="raceCanvas" width="800" height="400"></canvas>
+    <button id="nextStep">Próximo Passo</button>
+    <script>
+        const target = ['R', 'H', 'W', 'A', 'V', 'K'];
+        let population = [];
+        const numIndividuals = 10;
+        let currentStep = 0;
+
+        // Definindo as cores para cada letra
+        const letterColors = {
+            'R': 'red',
+            'H': 'blue',
+            'W': 'green',
+            'A': 'yellow',
+            'V': 'orange',
+            'K': 'purple'
+        };
+
+        function setup() {
+            for (let i = 0; i < numIndividuals; i++) {
+                population.push(generateRandomIndividual());
+            }
+            draw();
+        }
+
+        function generateRandomIndividual() {
+            const individual = {
+                letters: [],
+                x: 0,
+                score: 0
+            };
+            for (let i = 0; i < target.length; i++) {
+                individual.letters.push(random(['R', 'H', 'W', 'A', 'V', 'K', 'X', 'Y', 'Z']));
+            }
+            return individual;
+        }
+
+        function random(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function calculateFitness(individual) {
+            return individual.letters.reduce((sum, letter, index) => {
+                return sum + (letter === target[index] ? 1 : 0);
+            }, 0);
+        }
+
+        function evaluatePopulation() {
+            population.forEach(individual => {
+                individual.score = calculateFitness(individual);
+            });
+        }
+
+        function selection() {
+            population.sort((a, b) => b.score - a.score);
+            return population.slice(0, population.length / 2); // Seleciona os melhores
+        }
+
+        function crossover(parent1, parent2) {
+            const crossoverPoint = Math.floor(Math.random() * target.length);
+            const child1 = {
+                letters: [...parent1.letters.slice(0, crossoverPoint), ...parent2.letters.slice(crossoverPoint)],
+                x: 0,
+                score: 0
+            };
+            const child2 = {
+                letters: [...parent2.letters.slice(0, crossoverPoint), ...parent1.letters.slice(crossoverPoint)],
+                x: 0,
+                score: 0
+            };
+            return [child1, child2];
+        }
+
+        function draw() {
+            const canvas = document.getElementById("raceCanvas");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (currentStep === 0) {
+                ctx.fillText("Indivíduos Criados:", 50, 50);
+                population.forEach((individual, index) => {
+                    individual.letters.forEach((letter, letterIndex) => {
+                        ctx.fillStyle = letterColors[letter] || 'black'; // Default to black if letter not found
+                        ctx.font = "bold 20px Arial"; // Define fonte em negrito
+                        ctx.fillText(letter, 50 + letterIndex * 25, 70 + index * 30);
+                    });
+                });
+            } else if (currentStep === 1) {
+                evaluatePopulation();
+                ctx.fillText("Avaliação da População:", 50, 50);
+                population.forEach((individual, index) => {
+                    individual.letters.forEach((letter, letterIndex) => {
+                        ctx.fillStyle = letterColors[letter] || 'black'; // Default to black if letter not found
+                        ctx.font = "bold 20px Arial"; // Define fonte em negrito
+                        ctx.fillText(letter, 50 + letterIndex * 25, 70 + index * 30);
+                    });
+                    ctx.fillText(" - Pontuação: " + individual.score, 50 + individual.letters.length * 25, 70 + index * 30);
+                });
+            } else if (currentStep === 2) {
+                const selected = selection();
+                ctx.fillText("Indivíduos Selecionados:", 50, 50);
+                selected.forEach((individual, index) => {
+                    individual.letters.forEach((letter, letterIndex) => {
+                        ctx.fillStyle = letterColors[letter] || 'black'; // Default to black if letter not found
+                        ctx.font = "bold 20px Arial"; // Define fonte em negrito
+                        ctx.fillText(letter, 50 + letterIndex * 25, 70 + index * 30);
+                    });
+                    ctx.fillText(" - Pontuação: " + individual.score, 50 + individual.letters.length * 25, 70 + index * 30);
+                });
+            } else if (currentStep === 3) {
+                const selected = selection();
+                const children = [];
+                for (let i = 0; i < selected.length - 1; i += 2) {
+                    const [child1, child2] = crossover(selected[i], selected[i + 1]);
+                    children.push(child1, child2);
+                }
+                ctx.fillText("Crossover Resultando em Novos Indivíduos:", 50, 50);
+                children.forEach((individual, index) => {
+                    individual.letters.forEach((letter, letterIndex) => {
+                        ctx.fillStyle = letterColors[letter] || 'black'; // Default to black if letter not found
+                        ctx.font = "bold 20px Arial"; // Define fonte em negrito
+                        ctx.fillText(letter, 50 + letterIndex * 25, 70 + index * 30);
+                    });
+                });
+            }
+
+            ctx.fillText("Passo: " + (currentStep + 1), 50, canvas.height - 20);
+        }
+
+        document.getElementById("nextStep").addEventListener("click", () => {
+            if (currentStep < 3) {
+                currentStep++;
+                draw();
+            }
+        });
+
+        setup();
+    </script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jardim Florido</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                height: 100vh;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+
+            header {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .parameter-container {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+
+            .room-container {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+                width: 100%;
+            }
+
+            .room {
+                border: 2px dashed #ccc;
+                padding: 10px;
+                width: 250px;
+                height: 530px;
+                overflow-y: auto;
+                margin: 0 10px;
+            }
+
+            .individual {
+                border: 1px solid #000;
+                padding: 5px;
+                margin: 5px;
+                cursor: move;
+                display: inline-block;
+                font-weight: bold;
+                position: relative;
+            }
+
+            .individual:hover::after {
+                content: attr(data-score);
+                position: absolute;
+                background-color: #333;
+                color: #fff;
+                padding: 2px 5px;
+                border-radius: 5px;
+                top: -25px;
+                left: 0;
+                white-space: nowrap;
+                font-size: 12px;
+            }
+
+            .letter {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                text-align: center;
+                line-height: 20px;
+                margin: 0 2px;
+            }
+
+            .R {
+                background-color: red;
+                color: white;
+            }
+
+            .H {
+                background-color: blue;
+                color: white;
+            }
+
+            .W {
+                background-color: green;
+                color: white;
+            }
+
+            .A {
+                background-color: yellow;
+                color: black;
+            }
+
+            .V {
+                background-color: orange;
+                color: black;
+            }
+
+            .K {
+                background-color: purple;
+                color: white;
+            }
+
+            button {
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <h1>Jardim Florido</h1>
+            <div class="parameter-container">
+                <div>
+                    <label for="numIndividuals">Quantidade de Indivíduos:</label>
+                    <input type="number" id="numIndividuals" value="10" min="1" max="100">
+                </div>
+                <div>
+                    <label for="numChildren">Quantidade de Filhos:</label>
+                    <input type="number" id="numChildren" value="2" min="1" max="10">
+                </div>
+                <div>
+                    <label for="mutationRate">Taxa de Mutação (%):</label>
+                    <input type="number" id="mutationRate" value="5" min="0" max="100">
+                </div>
+            </div>
+        </header>
+
+        <div class="room-container">
+            <div class="room" id="creationRoom" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Indivíduos Criados</h2>
+                <div id="individualsContainer"></div>
+            </div>
+            <div class="room" id="evaluationRoom" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Avaliação</h2>
+            </div>
+            <div class="room" id="crossoverRoom" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Crossover</h2>
+            </div>
+            <div class="room" id="selectionRoom" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Seleção</h2>
+            </div>
+        </div>
+
+        <div class="room-container">
+            <button id="generateIndividuals">Gerar Indivíduos</button>
+            <button id="evaluateIndividuals">Avaliar Indivíduos</button>
+            <button id="performCrossover">Realizar Crossover</button>
+            <button id="selectIndividuals">Selecionar Indivíduos</button>
+            <button id="newGeneration">Nova Geração</button>
+        </div>
+
+        <script>
+            const target = ['R', 'H', 'W', 'A', 'V', 'K'];
+            let population = [];
+            let currentStep = 0;
+            let childCounter = 1; // Contador para os filhos
+            let offspring = []; // Variável global para armazenar os filhos gerados
+
+            const letterColors = {
+                'R': 'red',
+                'H': 'blue',
+                'W': 'green',
+                'A': 'yellow',
+                'V': 'orange',
+                'K': 'purple'
+            };
+
+            function generateIndividuals() {
+                const numIndividuals = parseInt(document.getElementById('numIndividuals').value);
+                population = [];
+                document.getElementById('creationRoom').innerHTML = '<h2>Indivíduos Criados</h2>';
+                for (let i = 0; i < numIndividuals; i++) {
+                    const individual = generateRandomIndividual();
+                    addIndividualToRoom(individual, 'creationRoom');
+                    population.push(individual);
+                }
+            }
+
+            function generateRandomIndividual() {
+                const individual = {
+                    name: `i${population.length + 1}`,
+                    letters: [],
+                    score: 0
+                };
+                for (let i = 0; i < target.length; i++) {
+                    individual.letters.push(randomLetter());
+                }
+                return individual;
+            }
+
+            function randomLetter() {
+                const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                return alphabet[Math.floor(Math.random() * alphabet.length)];
+            }
+
+            function calculateFitness(individual) {
+                const targetSet = new Set(target);
+                const individualSet = new Set(individual.letters);
+                let score = 0;
+
+                targetSet.forEach(letter => {
+                    if (individualSet.has(letter)) {
+                        score++;
+                    }
+                });
+
+                return score;
+            }
+
+            function evaluatePopulation() {
+                population.forEach(individual => {
+                    individual.score = calculateFitness(individual);
+                });
+            }
+
+            function selection(populationList) {
+                populationList.sort((a, b) => b.score - a.score);
+                return populationList.slice(0, 10); // Mantém apenas os 10 melhores indivíduos
+            }
+
+            function crossover(parent1, parent2) {
+                const child1 = { letters: [...parent1.letters], name: `${parent1.name}-${parent2.name}`, score: 0 };
+                const child2 = { letters: [...parent2.letters], name: `${parent2.name}-${parent1.name}`, score: 0 };
+
+                let pos1 = Math.floor(Math.random() * target.length);
+                let pos2;
+                do {
+                    pos2 = Math.floor(Math.random() * target.length);
+                } while (pos2 === pos1);
+
+                [child1.letters[pos1], child2.letters[pos1]] = [child2.letters[pos1], child1.letters[pos1]];
+                [child1.letters[pos2], child2.letters[pos2]] = [child2.letters[pos2], child1.letters[pos2]];
+
+                return [child1, child2];
+            }
+
+            function addIndividualToRoom(individual, roomId) {
+                const container = document.getElementById(roomId);
+                const individualDiv = document.createElement('div');
+                individualDiv.style.display = 'flex';
+                individualDiv.style.alignItems = 'center';
+
+                const nameDiv = document.createElement('div');
+                nameDiv.innerText = individual.name;
+                nameDiv.style.marginRight = '10px';
+                nameDiv.style.fontWeight = 'bold';
+
+                individualDiv.appendChild(nameDiv);
+
+                const div = document.createElement('div');
+                div.className = 'individual';
+                div.setAttribute('draggable', 'true');
+                div.setAttribute('data-score', `Score: ${individual.score}`);
+                div.setAttribute('data-individual', JSON.stringify(individual)); // Adiciona o dado do indivíduo
+                div.ondragstart = (event) => {
+                    event.dataTransfer.setData('text/plain', JSON.stringify(individual));
+                };
+
+                individual.letters.forEach(letter => {
+                    const letterDiv = document.createElement('div');
+                    letterDiv.className = `letter ${letter}`;
+                    letterDiv.innerText = letter;
+                    div.appendChild(letterDiv);
+                });
+
+                individualDiv.appendChild(div);
+                container.appendChild(individualDiv);
+            }
+
+
+            document.getElementById('generateIndividuals').addEventListener('click', generateIndividuals);
+
+            document.getElementById('evaluateIndividuals').addEventListener('click', () => {
+                evaluatePopulation();
+
+                // Ordena a população com base no score antes de exibir
+                population.sort((a, b) => b.score - a.score);
+
+                const evaluationRoom = document.getElementById('evaluationRoom');
+                evaluationRoom.innerHTML = '<h2>Avaliação</h2>'; // Limpa o conteúdo anterior
+
+                // Exibe os indivíduos em ordem decrescente de score
+                population.forEach(individual => {
+                    addIndividualToRoom(individual, 'evaluationRoom');
+                });
+            });
+
+            document.getElementById('performCrossover').addEventListener('click', () => {
+                const selectedIndividuals = selection(population);
+                const crossoverResults = [];
+
+                for (let i = 0; i < selectedIndividuals.length; i += 2) {
+                    if (i + 1 < selectedIndividuals.length) {
+                        // Gera filhos do crossover
+                        const [child1, child2] = crossover(selectedIndividuals[i], selectedIndividuals[i + 1]);
+                        crossoverResults.push(child1, child2);
+                    }
+                }
+
+                // Atualiza a variável offspring com os filhos gerados
+                offspring = crossoverResults;
+
+                // Calcula a pontuação dos filhos gerados após o crossover
+                offspring.forEach(child => {
+                    child.score = calculateFitness(child);
+                });
+
+                // Ordena os indivíduos do crossover com base na pontuação
+                offspring.sort((a, b) => b.score - a.score);
+
+                // Atualiza a sala de crossover com os indivíduos ordenados
+                const crossoverRoom = document.getElementById('crossoverRoom');
+                crossoverRoom.innerHTML = '<h2>Crossover</h2>'; // Limpa o conteúdo anterior
+                offspring.forEach(child => {
+                    addIndividualToRoom(child, 'crossoverRoom');
+                });
+
+                currentStep++;
+            });
+
+            document.getElementById('selectIndividuals').addEventListener('click', () => {
+                // Mescla a população original com os resultados do crossover
+                const allIndividuals = [...population, ...offspring];
+
+                // Calcula a pontuação para os indivíduos (caso ainda não tenha sido feita para o crossover)
+                allIndividuals.forEach(individual => {
+                    if (individual.score === 0) {
+                        individual.score = calculateFitness(individual);
+                    }
+                });
+
+                // Realiza a seleção dos melhores indivíduos da população e do crossover
+                const selectedIndividuals = selection(allIndividuals);
+
+                // Limpa a sala de seleção
+                const selectionRoom = document.getElementById('selectionRoom');
+                selectionRoom.innerHTML = '<h2>Seleção</h2>';
+
+                // Adiciona os melhores indivíduos na sala de seleção
+                selectedIndividuals.forEach(individual => {
+                    addIndividualToRoom(individual, 'selectionRoom');
+                });
+
+                alert('Indivíduos selecionados!');
+            });
+
+            document.getElementById('newGeneration').addEventListener('click', () => {
+                const selectionRoom = document.getElementById('selectionRoom');
+                const selectedIndividuals = Array.from(selectionRoom.getElementsByClassName('individual'));
+
+                // Limpa a sala de criação antes de adicionar novos indivíduos
+                document.getElementById('creationRoom').innerHTML = '<h2>Indivíduos Criados</h2>';
+                population = []; // Limpa a população atual
+
+                // Adiciona os indivíduos selecionados à sala de criação e à nova população
+                selectedIndividuals.forEach(individualDiv => {
+                    const individualData = JSON.parse(individualDiv.getAttribute('data-individual'));
+                    addIndividualToRoom(individualData, 'creationRoom');
+                    population.push(individualData);
+                });
+
+                alert('Nova geração criada a partir dos indivíduos selecionados!');
+            });
+        </script>
+    </body>
+
+</html>
