@@ -1,0 +1,173 @@
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 5px;
+}
+
+.tile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 100px;
+  background-color: #2196f3;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+.tile.empty {
+  background-color: #f0f0f0;
+  cursor: default;
+  box-shadow: none;
+}
+
+.board-state {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.inversions {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #555;
+}
+
+.shuffle-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s;
+}
+
+.shuffle-button:hover {
+  background-color: #45a049;
+}
+
+.move-count {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #555;
+}
+
+.timer {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #555;
+}
+
+#calculateParityButton {
+  padding: 10px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  background-color: #4CAF50;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#calculateParityButton:hover {
+  background-color: #45a049;
+}
+
+#calculateParityButton:active {
+  transform: scale(0.98);
+  background-color: #3e8e41;
+}
+
+#calculateParityButton:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(72, 184, 72, 0.8);
+}
+/* Alinha os botões lado a lado e adiciona espaçamento */
+div>button {
+  margin-right: 10px;
+  /* Ajuste o valor conforme necessário */
+}
+
+div {
+  display: flex;
+  align-items: center;
+}
+
+button {
+  background-color: #FF4C61;
+  /* Cor dos botões */
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #ff6878;
+  /* Efeito ao passar o mouse */
+}
+
+#gameTimer,
+#moveCount {
+  background-color: #2196f3;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 18px;
+}
+
+#gameTimer {
+  margin-left: 5px;
+}
+
+#moveCount {
+  margin-right: 10px;
+}
+.move-time-container {
+  display: flex;
+  align-items: center;
+}
+
+.move-count {
+  margin-right: 10px;
+  /* Espaçamento entre o número de jogadas e o temporizador */
+}
+div>label,
+div>input,
+div>button {
+  margin-right: 10px;
+  /* Ajuste o valor conforme necessário */
+}
+
