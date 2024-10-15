@@ -159,7 +159,6 @@
             const id = e.target.id;
             if (board[id] === "" && gameActive) {
                 if (currentPlayer === "X") {
-                    // Jogada do jogador X
                     board[id] = currentPlayer;
                     e.target.textContent = currentPlayer;
                     e.target.classList.add(currentPlayer);
@@ -168,22 +167,11 @@
                         highlightWinningCells(board, currentPlayer);
                         alert(currentPlayer + ' venceu!');
                         gameActive = false;
-                    } else if (board.includes("")) {
+                    } else if (!board.includes("")) {
+                        alert('Empate!');
+                        gameActive = false;
+                    } else {
                         currentPlayer = "O";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                } else if (currentPlayer === "O") {
-                    // Jogada do jogador O via clique do mouse
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
                         generateNextMoves(board, currentPlayer, treeRoot);
                     }
                 }
@@ -192,24 +180,21 @@
 
         function aiMove() {
             if (currentPlayer === "O" && gameActive) {
-                const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-                if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = currentPlayer;
-                    cells[randomIndex].textContent = currentPlayer;
-                    cells[randomIndex].classList.add(currentPlayer);
+                const bestMove = minimax(board, 0, true, -Infinity, Infinity).index;
+                board[bestMove] = currentPlayer;
+                cells[bestMove].textContent = currentPlayer;
+                cells[bestMove].classList.add(currentPlayer);
 
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    } else {
-                        alert('Empate!');
-                        gameActive = false;
-                    }
+                if (checkWinner(board, currentPlayer)) {
+                    highlightWinningCells(board, currentPlayer);
+                    alert(currentPlayer + ' venceu!');
+                    gameActive = false;
+                } else if (!board.includes("")) {
+                    alert('Empate!');
+                    gameActive = false;
+                } else {
+                    currentPlayer = "X";
+                    generateNextMoves(board, currentPlayer, treeRoot);
                 }
             }
         }
@@ -254,7 +239,7 @@
         }
 
         function generateNextMoves(board, player, parent) {
-            parent.innerHTML = ''; // Limpar o conteúdo atual
+            parent.innerHTML = '';
 
             const availableMoves = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
 
@@ -266,7 +251,6 @@
                 li.textContent = `Jogador ${player} -> Movimento ${move}`;
                 parent.appendChild(li);
 
-                // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
                 const miniBoard = document.createElement('div');
                 miniBoard.className = 'mini-board';
                 newBoard.forEach((val, index) => {
@@ -277,6 +261,52 @@
                 });
                 li.appendChild(miniBoard);
             });
+        }
+
+        // Função Minimax com poda alfa-beta
+        function minimax(newBoard, depth, isMaximizing, alpha, beta) {
+            const availableMoves = newBoard.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+            const winner = checkWinner(newBoard, "X") ? "X" : checkWinner(newBoard, "O") ? "O" : null;
+
+            if (winner === "X") return { score: -10 + depth };
+            if (winner === "O") return { score: 10 - depth };
+            if (availableMoves.length === 0) return { score: 0 };
+
+            if (isMaximizing) {
+                let bestScore = -Infinity;
+                let bestMove;
+
+                availableMoves.forEach(move => {
+                    newBoard[move] = "O";
+                    const result = minimax(newBoard, depth + 1, false, alpha, beta);
+                    newBoard[move] = "";
+                    if (result.score > bestScore) {
+                        bestScore = result.score;
+                        bestMove = move;
+                    }
+                    alpha = Math.max(alpha, bestScore);
+                    if (beta <= alpha) return;
+                });
+
+                return { index: bestMove, score: bestScore };
+            } else {
+                let bestScore = Infinity;
+                let bestMove;
+
+                availableMoves.forEach(move => {
+                    newBoard[move] = "X";
+                    const result = minimax(newBoard, depth + 1, true, alpha, beta);
+                    newBoard[move] = "";
+                    if (result.score < bestScore) {
+                        bestScore = result.score;
+                        bestMove = move;
+                    }
+                    beta = Math.min(beta, bestScore);
+                    if (beta <= alpha) return;
+                });
+
+                return { index: bestMove, score: bestScore };
+            }
         }
     </script>
 
