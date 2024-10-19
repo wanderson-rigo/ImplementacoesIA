@@ -5,110 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Velha com Minimax</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        @import url('https://fonts.googleapis.com/css2?family=Days+One&display=swap');
+
+        .days-one-regular {
+            font-family: "Days One", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        body{
+            font-family: Arial, Helvetica, sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            height: 100vh;
+            height: 108vh;
         }
-        #container {
+
+        #container{
             display: flex;
             width: 100%;
         }
-        #game-board-container {
+
+        #game-board-container{
             width: 40%;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
+            flex-direction: column;
             background-color: #f4f4f4;
             border-right: 1px solid #ccc;
             padding: 10px;
         }
-        #game-board {
+
+        #game-board{
             display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 5px;
+            grid-template-columns: repeat(3, 90px);
+            grid-template-rows: repeat(3, 90px);
+            gap: 3px;
         }
-        .cell {
-            width: 100px;
-            height: 100px;
+
+        .cell{
+            width: 90px;
+            height: 90px;
             background-color: #cbc8c8;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 2em;
+            font-family: "Days One";
             cursor: pointer;
+            transition: background-color 0.3s ease;
         }
-        .cell.X {
-            color: blue;
+
+        .cell.X{
+            background-color:#468FDD;
+            color: white;
+            font-weight: bold;
         }
-        .cell.O {
-            color: red;
+
+        .cell.O{
+            background-color: #D85B5B;
+            color: white;
+            font-weight: bold;
         }
-        .winning-cell {
+
+        .cell:hover{
+            background-color: #e0d3d3;
+        }
+
+        .winning-cell{
             background-color: #d4edda;
             border: 2px solid #c3e6cb;
         }
-        #tree {
+
+        #tree{
             width: 60%;
             padding: 20px;
             overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
-        #tree ul {
+
+        #tree ul{
+            display: flex;
+            flex-wrap: wrap;
+            padding-left: 0;
             list-style-type: none;
         }
-        .mini-board {
+
+        #tree li{
+            margin: 20px;
+        }
+
+        .mini-board{
             display: grid;
+            align-items: center;
             grid-template-columns: repeat(3, 30px);
             grid-template-rows: repeat(3, 30px);
-            gap: 2px;
-            margin-bottom: 10px;
         }
-        .mini-cell {
+
+        .mini-cell{
             width: 30px;
             height: 30px;
             background-color: #fff;
             border: 1px solid #ccc;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items:center;
             font-size: 1em;
         }
-        .mini-cell.X {
+
+        .mini-cell.X{
             color: blue;
+            font-weight: bold;
         }
-        .mini-cell.O {
+
+        .mini-cell.O{
             color: red;
+            font-weight: bold;
         }
-        #button-container {
+
+        #button-container{
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             width: 100%;
-            margin-top: 10px;
+            margin-top: 20px;
         }
-        button {
+
+        button{
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin: 0 5px;
+            margin: 5px 5px;
         }
-        #reset-button {
+
+        #reset-button{
             background-color: #007bff;
             color: white;
+            margin: 10px;
         }
-        #play-o-button {
+
+        #play-o-button{
             background-color: #17a2b8;
             color: white;
+            margin: 10px;
         }
-        #reset-button:hover {
+
+        #reset-button:hover{
             background-color: #0056b3;
         }
-        #play-o-button:hover {
+
+        #play-o-button:hover{
             background-color: #138496;
         }
+
+        .x-move{
+            background-color: lightblue;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .o-move{
+            background-color: lightcoral;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
     </style>
 </head>
 <body>
@@ -140,6 +204,11 @@
 
     <script>
         const board = ["", "", "", "", "", "", "", "", ""];
+        const scores = {
+            X: 1,
+            O: -1,
+            tie: 0
+        }
         let currentPlayer = "X";
         let gameActive = true;
 
@@ -155,6 +224,62 @@
         resetButton.addEventListener('click', resetGame);
         playOButton.addEventListener('click', aiMove);
 
+        function bestMove(){
+            let bestScore = Infinity;
+            let move;
+            for(let i = 0; i < 9; i++){
+                if(board[i] === ''){
+                    board[i] = 'O';
+                    let score = minMax(board, 0, true, -Infinity, Infinity);
+                    board[i] = '';
+                    if(score < bestScore){
+                        bestScore = score;
+                        move = i;
+                    }
+                }
+            }
+            return move
+        }
+
+        function minMax(board, depth, isMaximizing, alpha, beta){
+            let result = checkWinner(board);
+            if(result !== null){
+                return scores[result[0]];
+            }
+
+            if(isMaximizing){
+                let bestScore = -Infinity;
+                for(let i = 0; i < 9; i++){
+                    if(board[i] === ''){
+                        board[i] = 'X';
+                        let score = minMax(board, depth + 1, false, alpha, beta);
+                        board[i] = '';
+                        bestScore = Math.max(score, bestScore);
+                        if(bestScore > beta){
+                            break;
+                        }
+                        alpha = Math.max(alpha, bestScore);
+                    }
+                }
+                return bestScore
+            }else{
+                let bestScore = Infinity;
+                for(let i = 0; i < 9; i++){
+                    if(board[i] === ''){
+                        board[i] = 'O';
+                        let score = minMax(board, depth + 1, true, alpha, beta);
+                        board[i] = '';
+                        bestScore = Math.min(score, bestScore);
+                        if(bestScore < alpha){
+                            break;
+                        }
+                        beta = Math.min(beta, bestScore);
+                    }
+                }
+                return bestScore;
+            }
+        }
+        
         function handleClick(e) {
             const id = e.target.id;
             if (board[id] === "" && gameActive) {
@@ -163,28 +288,34 @@
                     board[id] = currentPlayer;
                     e.target.textContent = currentPlayer;
                     e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
+                    let result = checkWinner(board);
+                    if (result !== null && result[1]) {
                         highlightWinningCells(board, currentPlayer);
                         alert(currentPlayer + ' venceu!');
                         gameActive = false;
                     } else if (board.includes("")) {
                         currentPlayer = "O";
                         generateNextMoves(board, currentPlayer, treeRoot);
+                    }else {
+                        alert('Empate!');
+                        gameActive = false;
                     }
                 } else if (currentPlayer === "O") {
                     // Jogada do jogador O via clique do mouse
                     board[id] = currentPlayer;
                     e.target.textContent = currentPlayer;
                     e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
+                    let result = checkWinner(board);
+                    if (result !== null && result[1]) {
                         highlightWinningCells(board, currentPlayer);
                         alert(currentPlayer + ' venceu!');
                         gameActive = false;
                     } else if (board.includes("")) {
                         currentPlayer = "X";
                         generateNextMoves(board, currentPlayer, treeRoot);
+                    }else {
+                        alert('Empate!');
+                        gameActive = false;
                     }
                 }
             }
@@ -194,12 +325,13 @@
             if (currentPlayer === "O" && gameActive) {
                 const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
                 if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                    let randomIndex = bestMove()
                     board[randomIndex] = currentPlayer;
                     cells[randomIndex].textContent = currentPlayer;
                     cells[randomIndex].classList.add(currentPlayer);
 
-                    if (checkWinner(board, currentPlayer)) {
+                    let result = checkWinner(board);
+                    if (result !== null && result[1]) {
                         highlightWinningCells(board, currentPlayer);
                         alert(currentPlayer + ' venceu!');
                         gameActive = false;
@@ -225,15 +357,22 @@
             treeRoot.innerHTML = '';
         }
 
-        function checkWinner(board, player) {
-            const winPatterns = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
+        function checkWinner(board) {
+            const winStates = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Horizontais
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Verticais
+                [0, 4, 8], [2, 4, 6] // Diagonais
             ];
-            return winPatterns.find(pattern => {
-                return pattern.every(index => board[index] === player);
-            });
+
+            for (let i = 0; i < winStates.length; i++) {
+                const [a, b, c] = winStates[i];
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return [board[a], winStates[i]];
+                }
+            }
+
+            if (!board.includes('')) return ["tie", null];
+            return null;
         }
 
         function highlightWinningCells(board, player) {
@@ -264,6 +403,7 @@
 
                 const li = document.createElement('li');
                 li.textContent = `Jogador ${player} -> Movimento ${move}`;
+		        li.classList.add(player === 'X' ? 'x-move' : 'o-move');
                 parent.appendChild(li);
 
                 // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
@@ -282,3 +422,4 @@
 
 </body>
 </html>
+
