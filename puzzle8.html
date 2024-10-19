@@ -57,7 +57,10 @@
             color: #333;
         }
 
-        .inversions {
+        .inversions,
+        .manhattan,
+        .misplaced-tiles,
+        .move-log {
             margin-top: 10px;
             font-size: 16px;
             color: #555;
@@ -88,6 +91,7 @@
     </style>
 </head>
 <body>
+    <h1>Renan e Kelvin - Puzzle8</h1>
     <div class="container">
         <div class="grid">
             <div class="tile" data-value="1">1</div>
@@ -108,6 +112,15 @@
     <div class="inversions" id="inversionsCount">
         Inversões: 0 (Paridade: par)
     </div>
+    <div class="manhattan" id="manhattanDistance">
+        Distância Manhattan: 0
+    </div>
+    <div class="misplaced-tiles" id="misplacedTilesCount">
+        Peças fora do lugar: 0
+    </div>
+    <div class="move-log" id="moveLog">
+        Trocas: Nenhuma
+    </div>
     <div class="move-count" id="moveCount">
         Número de jogadas: 0
     </div>
@@ -117,11 +130,15 @@
             const grid = document.querySelector('.grid');
             const boardStateDisplay = document.getElementById('boardState');
             const inversionsDisplay = document.getElementById('inversionsCount');
+            const manhattanDisplay = document.getElementById('manhattanDistance');
+            const misplacedTilesDisplay = document.getElementById('misplacedTilesCount');
+            const moveLogDisplay = document.getElementById('moveLog');
             const moveCountDisplay = document.getElementById('moveCount');
             const shuffleButton = document.getElementById('shuffleButton');
 
             const goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
             let moveCount = 0;
+            let moveLog = [];
 
             // Inicializa o estado do tabuleiro
             let boardState = Array.from(tiles).map(tile => parseInt(tile.dataset.value));
@@ -138,6 +155,25 @@
                 return inversions;
             }
 
+            function calculateManhattanDistance(state) {
+                let distance = 0;
+                for (let i = 0; i < state.length; i++) {
+                    if (state[i] !== 0) {
+                        const correctIndex = goalState.indexOf(state[i]);
+                        const currentRow = Math.floor(i / 3);
+                        const currentCol = i % 3;
+                        const correctRow = Math.floor(correctIndex / 3);
+                        const correctCol = correctIndex % 3;
+                        distance += Math.abs(currentRow - correctRow) + Math.abs(currentCol - correctCol);
+                    }
+                }
+                return distance;
+            }
+
+            function calculateMisplacedTiles(state) {
+                return state.filter((value, index) => value !== 0 && value !== goalState[index]).length;
+            }
+
             function updateDisplay() {
                 // Exibe o estado do tabuleiro na página
                 boardStateDisplay.textContent = `Estado atual: [${boardState.join(', ')}]`;
@@ -147,8 +183,19 @@
                 const parity = inversions % 2 === 0 ? "par" : "ímpar";
                 inversionsDisplay.textContent = `Inversões: ${inversions} (Paridade: ${parity})`;
 
+                // Calcula e exibe a Distância Manhattan
+                const manhattanDistance = calculateManhattanDistance(boardState);
+                manhattanDisplay.textContent = `Distância Manhattan: ${manhattanDistance}`;
+
+                // Calcula e exibe a quantidade de peças fora do lugar
+                const misplacedTiles = calculateMisplacedTiles(boardState);
+                misplacedTilesDisplay.textContent = `Peças fora do lugar: ${misplacedTiles}`;
+
                 // Exibe o número de jogadas
                 moveCountDisplay.textContent = `Número de jogadas: ${moveCount}`;
+
+                // Exibe o log de trocas
+                moveLogDisplay.textContent = `Trocas: ${moveLog.join(', ') || 'Nenhuma'}`;
             }
 
             function checkGoalState() {
@@ -164,6 +211,7 @@
                 } while (calculateInversions(boardState) % 2 !== 0); // Garante que o estado seja resolvível
 
                 moveCount = 0; // Reseta o contador de jogadas
+                moveLog = []; // Limpa o log de trocas
 
                 // Atualiza o conteúdo visual
                 tiles.forEach((tile, index) => {
@@ -213,6 +261,9 @@
                 if (validMoves[emptyTileIndex].includes(tileIndex)) {
                     // Troca de posição entre a peça clicada e a peça vazia
                     [boardState[tileIndex], boardState[emptyTileIndex]] = [boardState[emptyTileIndex], boardState[tileIndex]];
+
+                    // Registra a troca
+                    moveLog.push(`[${tileIndex}, ${emptyTileIndex}]`);
 
                     // Atualiza o conteúdo visual
                     tile.textContent = boardState[tileIndex] === 0 ? "" : boardState[tileIndex];
