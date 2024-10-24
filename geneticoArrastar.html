@@ -108,6 +108,32 @@
             button {
                 margin-top: 10px;
             }
+
+            #garden {
+                position: relative;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-top: 20px;
+                width: 600px;
+                height: 400px;
+                border: 1px solid black;
+            }
+
+            #bees {
+                position: relative;
+                top: 0;
+                left: 0;
+                width: 50px;
+                height: 50px;
+                background-image: url('bee.png');
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-color: yellow; /* Teste temporário para verificar a visibilidade */
+                display: block;
+                z-index: 10;
+                /* Garante que as abelhas fiquem sobre as flores */
+            }
         </style>
     </head>
 
@@ -152,7 +178,13 @@
             <button id="performCrossover">Realizar Crossover</button>
             <button id="selectIndividuals">Selecionar Indivíduos</button>
             <button id="newGeneration">Nova Geração</button>
+            <button id="generateGardem">Gerar Jardim</button>
+            <button id="visitFlowers">Visitar Flores</button> <!-- Novo botão -->
         </div>
+        <!-- Adicione esta div para o jardim -->
+        <div id="garden"></div>
+        <div id="bees"></div>
+        <!-- Div para as abelhas -->
 
         <script>
             const target = ['R', 'H', 'W', 'A', 'V', 'K'];
@@ -272,6 +304,84 @@
                 container.appendChild(individualDiv);
             }
 
+            // Função para desenhar flores
+            // Função para desenhar flores
+            function drawFlowers(individuals) {
+                const garden = document.getElementById('garden');
+                garden.innerHTML = ''; // Limpa o jardim antes de desenhar novas flores
+
+                individuals.forEach(individual => {
+                    if (individual.letters && Array.isArray(individual.letters)) { // Verifica se letters está definido e é um array
+                        const flower = document.createElement('div');
+                        flower.style.margin = '30px'; // Aumenta o espaçamento entre flores
+                        flower.style.position = 'relative';
+                        flower.style.width = '50px'; // Largura da flor
+                        flower.style.height = '50px'; // Altura da flor
+
+                        individual.letters.forEach((letter, index) => {
+                            const petal = document.createElement('div');
+                            petal.className = `letter ${letter}`; // Define a classe da letra para cor
+                            petal.style.width = '15px'; // Largura da pétala
+                            petal.style.height = '25px'; // Altura da pétala
+                            petal.style.position = 'absolute';
+                            petal.style.transformOrigin = '50% 100%';
+                            petal.style.transform = `rotate(${index * (360 / individual.letters.length)}deg) translateY(-50%)`;
+                            petal.style.borderRadius = '7.5px'; // Raio da borda para ser proporcional ao novo tamanho
+
+                            // Adiciona cor da pétala baseada na letra
+                            petal.style.backgroundColor = letterColors[letter] || 'transparent'; // Se não houver cor, transparente
+                            petal.style.border = '2px solid black'; // Adiciona contorno preto
+
+                            flower.appendChild(petal);
+                        });
+
+                        garden.appendChild(flower); // Adiciona a flor ao jardim
+                    }
+                });
+            }
+
+            function visitFlowers() {
+                const garden = document.getElementById('garden');
+                const flowers = garden.children;
+
+                const bee = document.getElementById('bees');
+
+                alert("visitFlowers")
+
+                bee.style.display = 'block';
+
+                let currentIndex = 0;
+
+                function moveToNextFlower() {
+                    if (currentIndex < flowers.length) {
+                        const flower = flowers[currentIndex];
+                        const rect = flower.getBoundingClientRect();
+                        const gardenRect = garden.getBoundingClientRect();
+
+                        alert("gardenRect: Left: " + gardenRect.left.toFixed() + ", Top: " + gardenRect.top.toFixed() + ", Width: " + gardenRect.width + ", Height: " + gardenRect.height)
+
+                        const flowerX = rect.left - gardenRect.left + (rect.width / 2) - (bee.offsetWidth / 2);
+                        const flowerY = rect.top - gardenRect.top + (rect.height / 2) - (bee.offsetHeight / 2);
+
+                        //printar a posição da abelha na flor
+                        console.log(flowerX, flowerY);
+
+                        bee.style.transition = 'left 1s, top 1s';
+                        bee.style.left = `${flowerX}px`;
+                        bee.style.top = `${flowerY}px`;
+
+                        currentIndex++;
+                        setTimeout(moveToNextFlower, 1500);
+                    } else {
+                        setTimeout(() => {
+                            bee.style.display = 'none';
+                        }, 1000);
+                    }
+                }
+
+                moveToNextFlower();
+            }
+
 
             document.getElementById('generateIndividuals').addEventListener('click', generateIndividuals);
 
@@ -357,15 +467,25 @@
                 document.getElementById('creationRoom').innerHTML = '<h2>Indivíduos Criados</h2>';
                 population = []; // Limpa a população atual
 
+                const newIndividuals = []; // Array para armazenar os novos indivíduos
+
                 // Adiciona os indivíduos selecionados à sala de criação e à nova população
                 selectedIndividuals.forEach(individualDiv => {
                     const individualData = JSON.parse(individualDiv.getAttribute('data-individual'));
                     addIndividualToRoom(individualData, 'creationRoom');
                     population.push(individualData);
+                    newIndividuals.push(individualData); // Adiciona o indivíduo ao novo array
                 });
 
                 alert('Nova geração criada a partir dos indivíduos selecionados!');
             });
+
+            document.getElementById('generateGardem').addEventListener('click', () => {
+                // Use os indivíduos selecionados (ou população atual) para desenhar o jardim
+                drawFlowers(selection(population)); // Aqui estou assumindo que você deseja usar os indivíduos selecionados
+            });
+
+            document.getElementById('visitFlowers').addEventListener('click', visitFlowers);
         </script>
     </body>
 

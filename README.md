@@ -11,3 +11,7 @@ Buscas:
 - <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaUCS3.html">Busca Custo Uniforme (Uniform Cost Search - UCS)</a>
 
 - <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/buscaDFS.html">Busca em Profundidade (Depth First Search - DFS)</a>
+
+Algoritmos Genéticos (AG):
+
+- <a target="_blank" href="https://wanderson-rigo.github.io/ImplementacoesIA/geneticoArrastar.html">🌼 Jardim Florido 🌺</a>
