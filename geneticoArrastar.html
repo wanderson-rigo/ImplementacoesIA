@@ -129,7 +129,8 @@
                 background-image: url('bee.png');
                 background-size: contain;
                 background-repeat: no-repeat;
-                background-color: yellow; /* Teste temporário para verificar a visibilidade */
+                background-color: yellow;
+                /* Teste temporário para verificar a visibilidade */
                 display: block;
                 z-index: 10;
                 /* Garante que as abelhas fiquem sobre as flores */
@@ -255,18 +256,21 @@
                 return populationList.slice(0, 10); // Mantém apenas os 10 melhores indivíduos
             }
 
+
+            // O crossover é feito de forma aleatória, selecionando duas posições diferentes para trocar as letras entre os pais.
             function crossover(parent1, parent2) {
                 const child1 = { letters: [...parent1.letters], name: `${parent1.name}-${parent2.name}`, score: 0 };
                 const child2 = { letters: [...parent2.letters], name: `${parent2.name}-${parent1.name}`, score: 0 };
 
                 let pos1 = Math.floor(Math.random() * target.length);
-                let pos2;
-                do {
-                    pos2 = Math.floor(Math.random() * target.length);
-                } while (pos2 === pos1);
+                let pos2 = Math.floor(Math.random() * target.length);
 
                 [child1.letters[pos1], child2.letters[pos1]] = [child2.letters[pos1], child1.letters[pos1]];
                 [child1.letters[pos2], child2.letters[pos2]] = [child2.letters[pos2], child1.letters[pos2]];
+
+                // Aplica a mutação nos filhos
+                mutate(child1);
+                mutate(child2);
 
                 return [child1, child2];
             }
@@ -304,7 +308,19 @@
                 container.appendChild(individualDiv);
             }
 
-            // Função para desenhar flores
+            /* a mutação é feita de forma aleatória, onde é definida uma taxa de mutação, 
+            e para cada letra do indivíduo, é verificado se a mutação deve ser aplicada. 
+            Se sim, a letra é substituída por uma nova letra aleatória.*/        
+            function mutate(individual) {
+                const mutationRate = parseInt(document.getElementById('mutationRate').value) / 100;
+                for (let i = 0; i < individual.letters.length; i++) {
+                    if (Math.random() < mutationRate) {
+                        // Muta a letra atual para uma nova letra aleatória
+                        individual.letters[i] = randomLetter();
+                    }
+                }
+            }
+
             // Função para desenhar flores
             function drawFlowers(individuals) {
                 const garden = document.getElementById('garden');
@@ -488,4 +504,5 @@
             document.getElementById('visitFlowers').addEventListener('click', visitFlowers);
         </script>
     </body>
+
 </html>
