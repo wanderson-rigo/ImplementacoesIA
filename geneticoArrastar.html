@@ -116,12 +116,13 @@
                 justify-content: center;
                 margin-top: 20px;
                 width: 600px;
-                height: 400px;
+                height: 220px;
                 border: 1px solid black;
+                z-index: 0;
             }
 
             #bees {
-                position: relative;
+                position: absolute;
                 top: 0;
                 left: 0;
                 width: 50px;
@@ -129,10 +130,9 @@
                 background-image: url('bee.png');
                 background-size: contain;
                 background-repeat: no-repeat;
-                background-color: yellow;
                 /* Teste temporário para verificar a visibilidade */
-                display: block;
-                z-index: 10;
+                display: none;
+                z-index: 100;
                 /* Garante que as abelhas fiquem sobre as flores */
             }
         </style>
@@ -257,23 +257,49 @@
             }
 
 
-            // O crossover é feito de forma aleatória, selecionando duas posições diferentes para trocar as letras entre os pais.
+            // A função crossover gera dois filhos a partir de dois pais, trocando aleatoriamente duas letras entre eles.
             function crossover(parent1, parent2) {
-                const child1 = { letters: [...parent1.letters], name: `${parent1.name}-${parent2.name}`, score: 0 };
-                const child2 = { letters: [...parent2.letters], name: `${parent2.name}-${parent1.name}`, score: 0 };
+                // Cria dois filhos inicialmente iguais aos pais, copiando as letras dos pais.
+                // Isso é feito para não modificar diretamente os pais.
+                const child1 = {
+                    letters: [...parent1.letters],  // copia as letras de parent1
+                    name: `${parent1.name}-${parent2.name}`,  // nome baseado nos pais
+                    score: 0  // inicializa o score como 0
+                };
+                const child2 = {
+                    letters: [...parent2.letters],  // copia as letras de parent2
+                    name: `${parent2.name}-${parent1.name}`,  // nome baseado nos pais
+                    score: 0  // inicializa o score como 0
+                };
 
+                // Escolhe aleatoriamente duas posições diferentes no array de letras
                 let pos1 = Math.floor(Math.random() * target.length);
                 let pos2 = Math.floor(Math.random() * target.length);
 
-                [child1.letters[pos1], child2.letters[pos1]] = [child2.letters[pos1], child1.letters[pos1]];
-                [child1.letters[pos2], child2.letters[pos2]] = [child2.letters[pos2], child1.letters[pos2]];
+                // Troca as letras na posição 'pos1' entre os dois filhos
+                let temp = child1.letters[pos1];
+                child1.letters[pos1] = child2.letters[pos1];
+                child2.letters[pos1] = temp;
 
-                // Aplica a mutação nos filhos
+                // Registrar a troca no console
+                console.log(`Troca 1: Posição ${pos1} - ${parent1.name} (${temp}) ↔ ${parent2.name} (${child1.letters[pos1]})`);
+
+                // Troca as letras na posição 'pos2' entre os dois filhos
+                temp = child1.letters[pos2];
+                child1.letters[pos2] = child2.letters[pos2];
+                child2.letters[pos2] = temp;
+
+                // Registrar a segunda troca no console
+                console.log(`Troca 2: Posição ${pos2} - ${parent1.name} (${temp}) ↔ ${parent2.name} (${child1.letters[pos2]})`);
+
+                // Aplica a mutação nos dois filhos
                 mutate(child1);
                 mutate(child2);
 
+                // Retorna os dois filhos gerados após o crossover e mutação.
                 return [child1, child2];
             }
+
 
             function addIndividualToRoom(individual, roomId) {
                 const container = document.getElementById(roomId);
@@ -310,7 +336,7 @@
 
             /* a mutação é feita de forma aleatória, onde é definida uma taxa de mutação, 
             e para cada letra do indivíduo, é verificado se a mutação deve ser aplicada. 
-            Se sim, a letra é substituída por uma nova letra aleatória.*/        
+            Se sim, a letra é substituída por uma nova letra aleatória.*/
             function mutate(individual) {
                 const mutationRate = parseInt(document.getElementById('mutationRate').value) / 100;
                 for (let i = 0; i < individual.letters.length; i++) {
@@ -321,7 +347,6 @@
                 }
             }
 
-            // Função para desenhar flores
             function drawFlowers(individuals) {
                 const garden = document.getElementById('garden');
                 garden.innerHTML = ''; // Limpa o jardim antes de desenhar novas flores
@@ -362,9 +387,9 @@
 
                 const bee = document.getElementById('bees');
 
-                alert("visitFlowers")
-
                 bee.style.display = 'block';
+
+                bee.style.zIndex = '100'
 
                 let currentIndex = 0;
 
@@ -374,17 +399,22 @@
                         const rect = flower.getBoundingClientRect();
                         const gardenRect = garden.getBoundingClientRect();
 
-                        alert("gardenRect: Left: " + gardenRect.left.toFixed() + ", Top: " + gardenRect.top.toFixed() + ", Width: " + gardenRect.width + ", Height: " + gardenRect.height)
+                        // Pegar as coordenadas top e left do jardim
+                        const gardenTop = gardenRect.top;
+                        const gardenLeft = gardenRect.left;
 
-                        const flowerX = rect.left - gardenRect.left + (rect.width / 2) - (bee.offsetWidth / 2);
-                        const flowerY = rect.top - gardenRect.top + (rect.height / 2) - (bee.offsetHeight / 2);
+                        console.log('Top:', gardenTop);
+                        console.log('Left:', gardenLeft);
 
-                        //printar a posição da abelha na flor
-                        console.log(flowerX, flowerY);
+                        //alert("gardenRect: Left: " + gardenRect.left.toFixed() + ", Top: " + gardenRect.top.toFixed() + ", Width: " + gardenRect.width + ", Height: " + gardenRect.height)
+
+                        const flowerX = 500 + rect.left - gardenRect.left + (rect.width / 2) - (bee.offsetWidth / 2);
+                        const flowerY = 800 + rect.top - gardenRect.top + (rect.height / 2) - (bee.offsetHeight / 2);
 
                         bee.style.transition = 'left 1s, top 1s';
                         bee.style.left = `${flowerX}px`;
                         bee.style.top = `${flowerY}px`;
+                        bee.style.zIndex = '100'
 
                         currentIndex++;
                         setTimeout(moveToNextFlower, 1500);
