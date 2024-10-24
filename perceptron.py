@@ -11,6 +11,7 @@ def train_perceptron(learning_rate, max_epochs, inputs, outputs):
     # Pesos iniciais
     w = [0.6 , 0.6]
 
+    # uma época é uma passagem completa por todos os exemplos de treinamento
     for epoch in range(max_epochs):
         global_error = 0
         print(f"\n ****************** Época {epoch + 1}: ******************")
@@ -75,7 +76,7 @@ inputs = np.array([
 # Saídas esperadas para a operação AND
 outputsAND = np.array([0, 0, 0, 1])
 
-# Saídas esperadas para a operação AND
+# Saídas esperadas para a operação OR
 outputsOR = np.array([0, 1, 1, 1])
 
 # eta(η) é a letra grega que representa a taxa de aprendizado
@@ -85,7 +86,7 @@ eta = 0.5
 max_epochs = 10
 
 # Treinamento do perceptron
-final_weights, epochs_taken = train_perceptron(eta, max_epochs, inputs, outputsOR)
+final_weights, epochs_taken = train_perceptron(eta, max_epochs, inputs, outputsAND)
 
 # Mostrar os pesos finais e número de épocas
 print(f"Os pesos finais são: {final_weights}")
