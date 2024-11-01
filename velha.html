@@ -158,60 +158,41 @@
         function handleClick(e) {
             const id = e.target.id;
             if (board[id] === "" && gameActive) {
-                if (currentPlayer === "X") {
-                    // Jogada do jogador X
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "O";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                } else if (currentPlayer === "O") {
-                    // Jogada do jogador O via clique do mouse
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
+                makeMove(id, currentPlayer, e.target);
+                if (checkWinner(board, currentPlayer)) {
+                    highlightWinningCells(board, currentPlayer);
+                    alert(currentPlayer + ' venceu!');
+                    gameActive = false;
+                } else if (board.includes("")) {
+                    currentPlayer = "O";
+                    generateNextMoves(board, currentPlayer, treeRoot);
                 }
             }
         }
 
         function aiMove() {
             if (currentPlayer === "O" && gameActive) {
-                const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-                if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = currentPlayer;
-                    cells[randomIndex].textContent = currentPlayer;
-                    cells[randomIndex].classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    } else {
-                        alert('Empate!');
-                        gameActive = false;
-                    }
+                const bestMove = minimax(board, currentPlayer).index;
+                makeMove(bestMove, currentPlayer, cells[bestMove]);
+                
+                if (checkWinner(board, currentPlayer)) {
+                    highlightWinningCells(board, currentPlayer);
+                    alert(currentPlayer + ' venceu!');
+                    gameActive = false;
+                } else if (!board.includes("")) {
+                    alert('Empate!');
+                    gameActive = false;
+                } else {
+                    currentPlayer = "X";
+                    generateNextMoves(board, currentPlayer, treeRoot);
                 }
             }
+        }
+
+        function makeMove(index, player, cell) {
+            board[index] = player;
+            cell.textContent = player;
+            cell.classList.add(player);
         }
 
         function resetGame() {
@@ -231,7 +212,7 @@
                 [0, 3, 6], [1, 4, 7], [2, 5, 8],
                 [0, 4, 8], [2, 4, 6]
             ];
-            return winPatterns.find(pattern => {
+            return winPatterns.some(pattern => {
                 return pattern.every(index => board[index] === player);
             });
         }
@@ -254,7 +235,7 @@
         }
 
         function generateNextMoves(board, player, parent) {
-            parent.innerHTML = ''; // Limpar o conteúdo atual
+            parent.innerHTML = '';
 
             const availableMoves = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
 
@@ -265,8 +246,7 @@
                 const li = document.createElement('li');
                 li.textContent = `Jogador ${player} -> Movimento ${move}`;
                 parent.appendChild(li);
-
-                // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
+                
                 const miniBoard = document.createElement('div');
                 miniBoard.className = 'mini-board';
                 newBoard.forEach((val, index) => {
@@ -278,7 +258,12 @@
                 li.appendChild(miniBoard);
             });
         }
-    </script>
 
-</body>
-</html>
+        function minimax(newBoard, player) {
+            const availableSpots = newBoard.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+
+            if (checkWinner(newBoard, "X")) {
+                return { score: -10 };
+            } else if (checkWinner(newBoard, "O")) {
+                return { score: 10 };
+            }
