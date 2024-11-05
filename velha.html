@@ -191,28 +191,27 @@
         }
 
         function aiMove() {
-            if (currentPlayer === "O" && gameActive) {
-                const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-                if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = currentPlayer;
-                    cells[randomIndex].textContent = currentPlayer;
-                    cells[randomIndex].classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    } else {
-                        alert('Empate!');
-                        gameActive = false;
-                    }
-                }
+    if (currentPlayer === "O" && gameActive) {
+        const bestMove = minimax(board, "O", 0, -Infinity, Infinity);
+        const move = bestMove.index;
+        if (move !== undefined) {
+            board[move] = currentPlayer;
+            cells[move].textContent = currentPlayer;
+            cells[move].classList.add(currentPlayer);
+            if (checkWinner(board, currentPlayer)) {
+                highlightWinningCells(board, currentPlayer);
+                alert(currentPlayer + ' venceu!');
+                gameActive = false;
+            } else if (board.includes("")) {
+                currentPlayer = "X";
+                generateNextMoves(board, currentPlayer, treeRoot);
+            } else {
+                alert('Empate!');
+                gameActive = false;
             }
         }
+    }
+}
 
         function resetGame() {
             board.fill("");
@@ -226,15 +225,13 @@
         }
 
         function checkWinner(board, player) {
-            const winPatterns = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
-            ];
-            return winPatterns.find(pattern => {
-                return pattern.every(index => board[index] === player);
-            });
-        }
+    const winPatterns = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
+        [0, 4, 8], [2, 4, 6]             // Diagonais
+    ];
+    return winPatterns.some(pattern => pattern.every(index => board[index] === player));
+}
 
         function highlightWinningCells(board, player) {
             const winPatterns = [
@@ -278,6 +275,52 @@
                 li.appendChild(miniBoard);
             });
         }
+
+        function minimax(newBoard, player, depth, alpha, beta) {
+    const availSpots = newBoard.reduce((acc, val, idx) => val === "" ? acc.concat(idx) : acc, []);
+    
+    if (checkWinner(newBoard, "X")) {
+        return { score: -10 + depth };
+    } else if (checkWinner(newBoard, "O")) {
+        return { score: 10 - depth };
+    } else if (availSpots.length === 0) {
+        return { score: 0 };
+    }
+
+    if (player === "O") {
+        let maxEval = { score: -Infinity };
+        for (let i = 0; i < availSpots.length; i++) {
+            newBoard[availSpots[i]] = player;
+            let eval = minimax(newBoard, "X", depth + 1, alpha, beta);
+            newBoard[availSpots[i]] = "";
+            eval.index = availSpots[i];
+            if (eval.score > maxEval.score) {
+                maxEval = eval;
+            }
+            alpha = Math.max(alpha, eval.score);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return maxEval;
+    } else {
+        let minEval = { score: Infinity };
+        for (let i = 0; i < availSpots.length; i++) {
+            newBoard[availSpots[i]] = player;
+            let eval = minimax(newBoard, "O", depth + 1, alpha, beta);
+            newBoard[availSpots[i]] = "";
+            eval.index = availSpots[i];
+            if (eval.score < minEval.score) {
+                minEval = eval;
+            }
+            beta = Math.min(beta, eval.score);
+            if (beta <= alpha) {
+                break;
+            }
+        }
+        return minEval;
+    }
+}
     </script>
 
 </body>
