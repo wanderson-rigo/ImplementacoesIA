@@ -41,24 +41,14 @@
             font-size: 2em;
             cursor: pointer;
         }
-        .cell.X {
-            color: blue;
-        }
-        .cell.O {
-            color: red;
-        }
+        .cell.X { color: blue; }
+        .cell.O { color: red; }
         .winning-cell {
             background-color: #d4edda;
             border: 2px solid #c3e6cb;
         }
-        #tree {
-            width: 60%;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        #tree ul {
-            list-style-type: none;
-        }
+        #tree { width: 60%; padding: 20px; overflow-y: auto; }
+        #tree ul { list-style-type: none; }
         .mini-board {
             display: grid;
             grid-template-columns: repeat(3, 30px);
@@ -76,12 +66,6 @@
             align-items: center;
             font-size: 1em;
         }
-        .mini-cell.X {
-            color: blue;
-        }
-        .mini-cell.O {
-            color: red;
-        }
         #button-container {
             display: flex;
             justify-content: space-between;
@@ -95,20 +79,10 @@
             cursor: pointer;
             margin: 0 5px;
         }
-        #reset-button {
-            background-color: #007bff;
-            color: white;
-        }
-        #play-o-button {
-            background-color: #17a2b8;
-            color: white;
-        }
-        #reset-button:hover {
-            background-color: #0056b3;
-        }
-        #play-o-button:hover {
-            background-color: #138496;
-        }
+        #reset-button { background-color: #007bff; color: white; }
+        #play-o-button { background-color: #17a2b8; color: white; }
+        #reset-button:hover { background-color: #0056b3; }
+        #play-o-button:hover { background-color: #138496; }
     </style>
 </head>
 <body>
@@ -158,60 +132,81 @@
         function handleClick(e) {
             const id = e.target.id;
             if (board[id] === "" && gameActive) {
-                if (currentPlayer === "X") {
-                    // Jogada do jogador X
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
+                makeMove(id, currentPlayer);
+                if (currentPlayer === "X") currentPlayer = "O";
+                else currentPlayer = "X";
+            }
+        }
 
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "O";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                } else if (currentPlayer === "O") {
-                    // Jogada do jogador O via clique do mouse
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
+        function makeMove(id, player) {
+            board[id] = player;
+            cells[id].textContent = player;
+            cells[id].classList.add(player);
 
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                }
+            if (checkWinner(board, player)) {
+                highlightWinningCells(board, player);
+                alert(player + ' venceu!');
+                gameActive = false;
+            } else if (!board.includes("")) {
+                alert('Empate!');
+                gameActive = false;
+            } else {
+                generateNextMoves(board, currentPlayer, treeRoot);
+                if (currentPlayer === "O") aiMove();
             }
         }
 
         function aiMove() {
-            if (currentPlayer === "O" && gameActive) {
-                const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-                if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = currentPlayer;
-                    cells[randomIndex].textContent = currentPlayer;
-                    cells[randomIndex].classList.add(currentPlayer);
+            if (gameActive) {
+                const bestMove = minimax(board, "O").index;
+                makeMove(bestMove, "O");
+            }
+        }
 
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    } else {
-                        alert('Empate!');
-                        gameActive = false;
+        function minimax(newBoard, player) {
+            const availSpots = newBoard.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+
+            if (checkWinner(newBoard, "X")) return { score: -10 };
+            if (checkWinner(newBoard, "O")) return { score: 10 };
+            if (availSpots.length === 0) return { score: 0 };
+
+            const moves = [];
+            for (let i = 0; i < availSpots.length; i++) {
+                const move = {};
+                move.index = availSpots[i];
+                newBoard[availSpots[i]] = player;
+
+                if (player === "O") {
+                    const result = minimax(newBoard, "X");
+                    move.score = result.score;
+                } else {
+                    const result = minimax(newBoard, "O");
+                    move.score = result.score;
+                }
+
+                newBoard[availSpots[i]] = ""; // Undo move
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === "O") {
+                let bestScore = -Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score > bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = moves[i];
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score < bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = moves[i];
                     }
                 }
             }
+            return bestMove;
         }
 
         function resetGame() {
