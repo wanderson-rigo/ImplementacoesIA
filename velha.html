@@ -1,284 +1,414 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jogo da Velha com Minimax</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            height: 100vh;
-        }
-        #container {
-            display: flex;
-            width: 100%;
-        }
-        #game-board-container {
-            width: 40%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f4f4f4;
-            border-right: 1px solid #ccc;
-            padding: 10px;
-        }
-        #game-board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 5px;
-        }
-        .cell {
-            width: 100px;
-            height: 100px;
-            background-color: #cbc8c8;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2em;
-            cursor: pointer;
-        }
-        .cell.X {
-            color: blue;
-        }
-        .cell.O {
-            color: red;
-        }
-        .winning-cell {
-            background-color: #d4edda;
-            border: 2px solid #c3e6cb;
-        }
-        #tree {
-            width: 60%;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        #tree ul {
-            list-style-type: none;
-        }
-        .mini-board {
-            display: grid;
-            grid-template-columns: repeat(3, 30px);
-            grid-template-rows: repeat(3, 30px);
-            gap: 2px;
-            margin-bottom: 10px;
-        }
-        .mini-cell {
-            width: 30px;
-            height: 30px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1em;
-        }
-        .mini-cell.X {
-            color: blue;
-        }
-        .mini-cell.O {
-            color: red;
-        }
-        #button-container {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-top: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin: 0 5px;
-        }
-        #reset-button {
-            background-color: #007bff;
-            color: white;
-        }
-        #play-o-button {
-            background-color: #17a2b8;
-            color: white;
-        }
-        #reset-button:hover {
-            background-color: #0056b3;
-        }
-        #play-o-button:hover {
-            background-color: #138496;
-        }
-    </style>
-</head>
-<body>
 
-    <div id="container">
-        <div id="game-board-container">
-            <div id="game-board">
-                <div class="cell" id="0"></div>
-                <div class="cell" id="1"></div>
-                <div class="cell" id="2"></div>
-                <div class="cell" id="3"></div>
-                <div class="cell" id="4"></div>
-                <div class="cell" id="5"></div>
-                <div class="cell" id="6"></div>
-                <div class="cell" id="7"></div>
-                <div class="cell" id="8"></div>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jogo da Velha com Minimax</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                height: 100vh;
+            }
+
+            #container {
+                display: flex;
+                width: 100%;
+            }
+
+            #game-board-container {
+                width: 40%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background-color: #f4f4f4;
+                border-right: 1px solid #ccc;
+                padding: 10px;
+            }
+
+            #game-board {
+                display: grid;
+                grid-template-columns: repeat(3, 100px);
+                grid-template-rows: repeat(3, 100px);
+                gap: 5px;
+            }
+
+            .cell {
+                width: 100px;
+                height: 100px;
+                background-color: #cbc8c8;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 2em;
+                cursor: pointer;
+            }
+
+            .cell.X {
+                color: blue;
+            }
+
+            .cell.O {
+                color: red;
+            }
+
+            .winning-cell {
+                background-color: #d4edda;
+                border: 2px solid #c3e6cb;
+            }
+
+            #tree {
+                width: 60%;
+                padding: 20px;
+                overflow-y: auto;
+            }
+
+            #tree ul {
+                list-style-type: none;
+            }
+
+            .mini-board {
+                display: grid;
+                grid-template-columns: repeat(3, 30px);
+                grid-template-rows: repeat(3, 30px);
+                gap: 2px;
+                margin-bottom: 10px;
+            }
+
+            .mini-cell {
+                width: 30px;
+                height: 30px;
+                background-color: #fff;
+                border: 1px solid #ccc;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 1em;
+            }
+
+            .mini-cell.X {
+                color: blue;
+            }
+
+            .mini-cell.O {
+                color: red;
+            }
+
+            #button-container {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+                margin-top: 10px;
+            }
+
+            button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                margin: 0 5px;
+            }
+
+            #reset-button {
+                background-color: #007bff;
+                color: white;
+            }
+
+            #play-o-button {
+                background-color: #17a2b8;
+                color: white;
+            }
+
+            #reset-button:hover {
+                background-color: #0056b3;
+            }
+
+            #play-o-button:hover {
+                background-color: #138496;
+            }
+
+            #suggest-move-button {
+                background-color: #17a2b8;
+                color: white;
+            }
+
+            #suggest-move-button:hover {
+                background-color: #0056b3;
+            }
+
+            #clear-history-button {
+                background-color: #17a2b8;
+                color: white;
+            }
+
+            #clear-history-button:hover {
+                background-color: #0056b3;
+            }
+
+
+            #history-container {
+                width: 60%;
+                padding: 20px;
+                background-color: #f4f4f4;
+                border: 1px solid #ccc;
+            }
+
+            #history-container h3 {
+                margin-bottom: 10px;
+            }
+
+            #game-history {
+                list-style-type: none;
+                padding: 0;
+            }
+
+            #game-history li {
+                padding: 5px;
+                background-color: #e9ecef;
+                margin-bottom: 5px;
+                border-radius: 4px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="container">
+            <div id="game-board-container">
+                <div id="game-board">
+                    <div class="cell" id="0"></div>
+                    <div class="cell" id="1"></div>
+                    <div class="cell" id="2"></div>
+                    <div class="cell" id="3"></div>
+                    <div class="cell" id="4"></div>
+                    <div class="cell" id="5"></div>
+                    <div class="cell" id="6"></div>
+                    <div class="cell" id="7"></div>
+                    <div class="cell" id="8"></div>
+                </div>
+                <div id="button-container">
+                    <button id="reset-button">Reiniciar</button>
+                    <button id="play-o-button">Jogar O</button>
+                    <button id="suggest-move-button">Sugerir Jogada</button>
+                    <button id="clear-history-button">Limpar Histórico</button>
+
+
+
+                </div>
             </div>
-            <div id="button-container">
-                <button id="reset-button">Reiniciar</button>
-                <button id="play-o-button">Jogar O</button>
+
+            <div id="tree">
+                <h3>Próximas Possibilidades</h3>
+                <ul id="tree-root"></ul>
+            </div>
+
+            <div id="history-container">
+                <h3>Histórico de Jogos</h3>
+                <ul id="game-history"></ul>
             </div>
         </div>
 
-        <div id="tree">
-            <h3>Próximas Possibilidades</h3>
-            <ul id="tree-root"></ul>
-        </div>
-    </div>
+        <script>
+            const board = ["", "", "", "", "", "", "", "", ""];
+            let currentPlayer = "X";
+            let gameActive = true;
+            let gameHistory = [];
 
-    <script>
-        const board = ["", "", "", "", "", "", "", "", ""];
-        let currentPlayer = "X";
-        let gameActive = true;
+            const cells = document.querySelectorAll('.cell');
+            const treeRoot = document.getElementById('tree-root');
+            const resetButton = document.getElementById('reset-button');
+            const playOButton = document.getElementById('play-o-button');
+            const gameHistoryElement = document.getElementById('game-history');
 
-        const cells = document.querySelectorAll('.cell');
-        const treeRoot = document.getElementById('tree-root');
-        const resetButton = document.getElementById('reset-button');
-        const playOButton = document.getElementById('play-o-button');
-
-        cells.forEach(cell => {
-            cell.addEventListener('click', handleClick);
-        });
-
-        resetButton.addEventListener('click', resetGame);
-        playOButton.addEventListener('click', aiMove);
-
-        function handleClick(e) {
-            const id = e.target.id;
-            if (board[id] === "" && gameActive) {
-                if (currentPlayer === "X") {
-                    // Jogada do jogador X
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "O";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                } else if (currentPlayer === "O") {
-                    // Jogada do jogador O via clique do mouse
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                }
-            }
-        }
-
-        function aiMove() {
-            if (currentPlayer === "O" && gameActive) {
-                const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-                if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = currentPlayer;
-                    cells[randomIndex].textContent = currentPlayer;
-                    cells[randomIndex].classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    } else {
-                        alert('Empate!');
-                        gameActive = false;
-                    }
-                }
-            }
-        }
-
-        function resetGame() {
-            board.fill("");
             cells.forEach(cell => {
-                cell.textContent = "";
-                cell.classList.remove("X", "O", "winning-cell");
-            });
-            currentPlayer = "X";
-            gameActive = true;
-            treeRoot.innerHTML = '';
-        }
-
-        function checkWinner(board, player) {
-            const winPatterns = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
-            ];
-            return winPatterns.find(pattern => {
-                return pattern.every(index => board[index] === player);
-            });
-        }
-
-        function highlightWinningCells(board, player) {
-            const winPatterns = [
-                [0, 1, 2], [3, 4, 5], [6, 7, 8],
-                [0, 3, 6], [1, 4, 7], [2, 5, 8],
-                [0, 4, 8], [2, 4, 6]
-            ];
-            const winningPattern = winPatterns.find(pattern => {
-                return pattern.every(index => board[index] === player);
+                cell.addEventListener('click', handleClick);
             });
 
-            if (winningPattern) {
-                winningPattern.forEach(index => {
-                    cells[index].classList.add("winning-cell");
+            resetButton.addEventListener('click', resetGame);
+            playOButton.addEventListener('click', aiMove);
+
+            function handleClick(e) {
+                const id = e.target.id;
+                if (board[id] === "" && gameActive) {
+                    board[id] = currentPlayer;
+                    e.target.textContent = currentPlayer;
+                    e.target.classList.add(currentPlayer);
+
+                    if (checkWinner(board, currentPlayer)) {
+                        highlightWinningCells(board, currentPlayer);
+                        alert(currentPlayer + ' venceu!');
+                        updateHistory(currentPlayer + ' venceu!');
+                        gameActive = false;
+                    } else if (isDraw(board)) {
+                        alert('Empate!');
+                        updateHistory('Empate!');
+                        gameActive = false;
+                    } else {
+                        currentPlayer = currentPlayer === "X" ? "O" : "X";
+                        if (currentPlayer === "O") {
+                            aiMove();
+                        }
+                        generateNextMoves(board, currentPlayer, treeRoot);
+                    }
+                }
+            }
+
+            function aiMove() {
+                if (currentPlayer === "O" && gameActive) {
+                    const bestMove = minimax(board, 0, -Infinity, Infinity, true).index;
+                    board[bestMove] = currentPlayer;
+                    cells[bestMove].textContent = currentPlayer;
+                    cells[bestMove].classList.add(currentPlayer);
+
+                    if (checkWinner(board, currentPlayer)) {
+                        highlightWinningCells(board, currentPlayer);
+                        alert(currentPlayer + ' venceu!');
+                        updateHistory(currentPlayer + ' venceu!');
+                        gameActive = false;
+                    } else if (isDraw(board)) {
+                        alert('Empate!');
+                        updateHistory('Empate!');
+                        gameActive = false;
+                    } else {
+                        currentPlayer = "X";
+                        generateNextMoves(board, currentPlayer, treeRoot);
+                    }
+                }
+            }
+
+            function resetGame() {
+                board.fill("");
+                cells.forEach(cell => {
+                    cell.textContent = "";
+                    cell.classList.remove("X", "O", "winning-cell");
+                });
+                currentPlayer = "X";
+                gameActive = true;
+                treeRoot.innerHTML = '';
+            }
+
+            function checkWinner(board, player) {
+                const winPatterns = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+                return winPatterns.some(pattern => pattern.every(index => board[index] === player));
+            }
+
+            function isDraw(board) {
+                return board.every(cell => cell !== "") && !checkWinner(board, "X") && !checkWinner(board, "O");
+            }
+
+            function highlightWinningCells(board, player) {
+                const winPatterns = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                    [0, 4, 8], [2, 4, 6]
+                ];
+                const winningPattern = winPatterns.find(pattern => pattern.every(index => board[index] === player));
+                if (winningPattern) {
+                    winningPattern.forEach(index => cells[index].classList.add("winning-cell"));
+                }
+            }
+
+            function minimax(newBoard, depth, alpha, beta, isMaximizing) {
+                const availableMoves = newBoard.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+                const scores = { X: 1, O: -1, tie: 0 };
+
+                if (checkWinner(newBoard, "O")) {
+                    return { score: scores["O"] - depth };
+                } else if (checkWinner(newBoard, "X")) {
+                    return { score: scores["X"] + depth };
+                } else if (availableMoves.length === 0) {
+                    return { score: scores["tie"] };
+                }
+
+                if (isMaximizing) {
+                    let maxEval = -Infinity;
+                    let bestMove;
+                    for (let i = 0; i < availableMoves.length; i++) {
+                        const move = availableMoves[i];
+                        newBoard[move] = "X";
+                        const eval = minimax(newBoard, depth + 1, alpha, beta, false).score;
+                        newBoard[move] = "";
+                        if (eval > maxEval) {
+                            maxEval = eval;
+                            bestMove = move;
+                        }
+                        alpha = Math.max(alpha, eval);
+                        if (beta <= alpha) break;
+                    }
+                    return { index: bestMove, score: maxEval };
+                } else {
+                    let minEval = Infinity;
+                    let bestMove;
+                    for (let i = 0; i < availableMoves.length; i++) {
+                        const move = availableMoves[i];
+                        newBoard[move] = "O";
+                        const eval = minimax(newBoard, depth + 1, alpha, beta, true).score;
+                        newBoard[move] = "";
+                        if (eval < minEval) {
+                            minEval = eval;
+                            bestMove = move;
+                        }
+                        beta = Math.min(beta, eval);
+                        if (beta <= alpha) break;
+                    }
+                    return { index: bestMove, score: minEval };
+                }
+            }
+
+            function updateHistory(result) {
+                gameHistory.push(result);
+                const newEntry = document.createElement('li');
+                newEntry.textContent = result;
+                gameHistoryElement.appendChild(newEntry);
+            }
+
+            function generateNextMoves(board, player, parent) {
+                parent.innerHTML = ''; // Limpar o conteúdo atual
+
+                const availableMoves = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+
+                availableMoves.forEach(move => {
+                    const newBoard = [...board];
+                    newBoard[move] = player;
+
+                    const li = document.createElement('li');
+                    li.textContent = `Jogador ${player} -> Movimento ${move}`;
+                    parent.appendChild(li);
+
+                    // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
+                    const miniBoard = document.createElement('div');
+                    miniBoard.className = 'mini-board';
+                    newBoard.forEach((val, index) => {
+                        const miniCell = document.createElement('div');
+                        miniCell.className = 'mini-cell ' + val;
+                        miniCell.textContent = val;
+                        miniBoard.appendChild(miniCell);
+                    });
+                    li.appendChild(miniBoard);
                 });
             }
-        }
+            function suggestMove() {
+                const bestMove = minimax(board, 0, -Infinity, Infinity, true).index;
+                alert('Melhor jogada: ' + bestMove);
+            }
+            document.getElementById('suggest-move-button').addEventListener('click', suggestMove);
 
-        function generateNextMoves(board, player, parent) {
-            parent.innerHTML = ''; // Limpar o conteúdo atual
+            const clearHistoryButton = document.getElementById('clear-history-button');
 
-            const availableMoves = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-
-            availableMoves.forEach(move => {
-                const newBoard = [...board];
-                newBoard[move] = player;
-
-                const li = document.createElement('li');
-                li.textContent = `Jogador ${player} -> Movimento ${move}`;
-                parent.appendChild(li);
-
-                // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
-                const miniBoard = document.createElement('div');
-                miniBoard.className = 'mini-board';
-                newBoard.forEach((val, index) => {
-                    const miniCell = document.createElement('div');
-                    miniCell.className = 'mini-cell ' + val;
-                    miniCell.textContent = val;
-                    miniBoard.appendChild(miniCell);
-                });
-                li.appendChild(miniBoard);
+            clearHistoryButton.addEventListener('click', () => {
+                gameHistory = []; // Limpar o array de histórico
+                gameHistoryElement.innerHTML = ''; // Remover todos os itens da lista exibida
             });
-        }
-    </script>
 
-</body>
+
+
+        </script>
+    </body>
+
 </html>
