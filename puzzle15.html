@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15-Puzzle</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(4, 100px);
+            gap: 5px;
+        }
+
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100px;
+            height: 100px;
+            background-color: #9c21f3;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .tile.empty {
+            background-color: #f0f0f0;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        .board-state {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .inversions {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .shuffle-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s;
+        }
+
+        .eight-puzzle-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s;
+        }
+
+        .eight-puzzle-button:hover{
+            background-color: #2195f3c9;
+        }
+
+        .shuffle-button:hover {
+            background-color: #45a049;
+        }
+
+        .blank-space {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+        
+        .move-count {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .wrong-pieces-count {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+    
+        .manhatan-distance {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .linha-extra {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="grid">
+            <div class="tile" data-value="1">1</div>
+            <div class="tile" data-value="2">2</div>
+            <div class="tile" data-value="3">3</div>
+            <div class="tile" data-value="4">4</div>
+            <div class="tile" data-value="5">5</div>
+            <div class="tile" data-value="6">6</div>
+            <div class="tile" data-value="7">7</div>
+            <div class="tile" data-value="8">8</div>
+            <div class="tile" data-value="9">9</div>
+            <div class="tile" data-value="10">10</div>
+            <div class="tile" data-value="11">11</div>
+            <div class="tile" data-value="12">12</div>
+            <div class="tile" data-value="13">13</div>
+            <div class="tile" data-value="14">14</div>
+            <div class="tile" data-value="15">15</div>
+            <div class="tile empty" data-value="0"></div>
+        </div>
+    </div>
+    <button class="shuffle-button" id="shuffleButton">Sortear Estado Inicial</button>
+    <div class="board-state" id="boardState">
+        Estado atual: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0]
+    </div>
+    <div class="inversions" id="inversionsCount">
+        Inversões: 0 (Paridade: par)
+    </div>
+    <div class="blank-space" id="blankSpace">
+        Linha inicial do espaço vazio: 0 (De baixo para cima: )
+    </div>
+    <div class="move-count" id="moveCount">
+        Número de jogadas: 0
+    </div>
+    <div class="wrong-pieces-count" id="wrongPiecesCount">
+        Peças fora do lugar: 0
+    </div>
+    <div class="manhatan-distance" id="manhatanDistance">
+        Array da distancia manhantan de cada peça + Total
+    </div>
+    <button class="eight-puzzle-button" id="eightPuzzleButton">Quebra-Cabeça de 8 Peças</button>
+    <script>
+
+        document.getElementById("eightPuzzleButton").addEventListener("click", function() {
+            window.location.href = "puzzle8.html"; // Relative link
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const tiles = document.querySelectorAll('.tile');
+            const grid = document.querySelector('.grid');
+            const boardStateDisplay = document.getElementById('boardState');
+            const inversionsDisplay = document.getElementById('inversionsCount');
+            const moveCountDisplay = document.getElementById('moveCount');
+            const blankSpaceDisplay = document.getElementById('blankSpace');
+            const wrongPieceDisplay = document.getElementById('wrongPiecesCount');
+            const manhantanDisplay = document.getElementById('manhatanDistance');
+            const shuffleButton = document.getElementById('shuffleButton');
+
+            const goalState = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0];
+            let moveCount = 0;
+            let blankSpace = 1;
+            let blankSpaceIndex = 15;
+            let wrongPiecesCount = 0;
+            let manhantanArray = Array(16).fill(0);
+
+            // Inicializa o estado do tabuleiro
+            let boardState = Array.from(tiles).map(tile => parseInt(tile.dataset.value));
+
+            function calculateInversions(state) {
+                let inversions = 0;
+                for (let i = 0; i < state.length - 1; i++) {
+                    for (let j = i + 1; j < state.length; j++) {
+                        if (state[i] > state[j] && state[i] !== 0 && state[j] !== 0) {
+                            inversions++;
+                        }
+                    }
+                }
+                return inversions;
+            }
+
+            function updateDisplay() {
+                // Exibe o estado do tabuleiro na página
+                boardStateDisplay.textContent = `Estado atual: [${boardState.join(', ')}]`;
+
+                // Calcula e exibe o número de inversões e a paridade
+                const inversions = calculateInversions(boardState);
+                const parity = inversions % 2 === 0 ? "par" : "ímpar";
+                inversionsDisplay.textContent = `Inversões: ${inversions} (Paridade: ${parity})`;
+
+                // Exibe o número de jogadas
+                moveCountDisplay.textContent = `Número de jogadas: ${moveCount}`;
+                blankSpaceDisplay.textContent = `Linha inicial do espaço vazio: ${blankSpace} (De baixo para cima) / Posição Inicial: ${blankSpaceIndex + 1}`;
+                wrongPieceDisplay.textContent = `Peças fora do lugar: ${wrongPiecesCount}`;
+
+                // Atualiza e exibe a distância de Manhattan
+                calculateManhantanDistance();
+                const totalManhattanDistance = manhantanArray.reduce((acc, dist) => acc + dist, 0);
+                manhantanDisplay.textContent = `Array da distância Manhattan de cada peça: [${manhantanArray.join(', ')}] + Total: ${totalManhattanDistance}`;
+            }
+
+            function checkGoalState() {
+                if (boardState.join(',') === goalState.join(',')) {
+                    alert(`Você resolveu o puzzle em ${moveCount} jogadas!`);
+                }
+            }
+
+            function checkWrongPieces() {
+                wrongPiecesCount = 0; // Reseta o contador de peças erradas 
+                for (let i = 0; i < boardState.length; i++) {
+                    if (boardState[i] !== goalState[i]) {
+                        wrongPiecesCount++;
+                    }
+                }
+            }
+
+            function calculateManhantanDistance() {
+                for (let i = 0; i < boardState.length; i++) {
+
+                    const tileValue = boardState[i];
+                    const goalPosition = goalState.indexOf(tileValue);
+                    const currentRow = Math.floor(i / 4);
+                    const currentCol = i % 4;
+                    const goalRow = Math.floor(goalPosition / 4);
+                    const goalCol = goalPosition % 4;
+
+                    const distance = Math.abs(currentRow - goalRow) + Math.abs(currentCol - goalCol);
+
+                    manhantanArray[tileValue - 1] = distance;
+                }
+            }
+
+            function shuffleBoard() {
+                // Embaralha o estado do tabuleiro
+                do {
+                    boardState = boardState.sort(() => Math.random() - 0.5);
+                    blankSpaceIndex = boardState.indexOf(0);
+                    blankSpace = Math.abs((Math.floor(blankSpaceIndex / 4)) - 4);
+                } while ((calculateInversions(boardState) + blankSpace + 1 ) % 2 !== 0); // Garante que o estado seja resolvível
+                
+                moveCount = 0; // Reseta o contador de jogadas
+                //blankSpace = boardState.indexOf(0);
+                //blankSpace = Math.abs((Math.floor(blankSpace / 4)) - 4);  //Recorda a posição inicial do espaço vazio
+
+                // Atualiza o conteúdo visual
+                tiles.forEach((tile, index) => {
+                    tile.textContent = boardState[index] === 0 ? "" : boardState[index];
+                    tile.dataset.value = boardState[index];
+
+                    if (boardState[index] === 0) {
+                        tile.classList.add('empty');
+                    } else {
+                        tile.classList.remove('empty');
+                    }
+                });
+
+                // Atualiza as exibições
+                checkWrongPieces();
+                updateDisplay();
+            }
+
+            updateDisplay(); // Atualiza a exibição inicialmente
+
+            grid.addEventListener('click', (e) => {
+                const tile = e.target;
+                if (tile.classList.contains('tile')) {
+                    moveTile(tile);
+                }
+            });
+
+            shuffleButton.addEventListener('click', shuffleBoard);
+
+            function moveTile(tile) {
+                const emptyTile = document.querySelector('.tile.empty');
+                const tileIndex = Array.from(tiles).indexOf(tile);
+                const emptyTileIndex = Array.from(tiles).indexOf(emptyTile);
+
+                // Define movimentos válidos (esquerda, direita, cima, baixo)
+                const validMoves = {
+                    0: [1, 4],     
+                    1: [0, 2, 5],   
+                    2: [1, 3, 6],   
+                    3: [2, 7],      
+                    4: [0, 5, 8],   
+                    5: [1, 4, 6, 9],
+                    6: [2, 5, 7, 10],
+                    7: [3, 6, 11],  
+                    8: [4, 9, 12],  
+                    9: [5, 8, 10, 13],
+                    10: [6, 9, 11, 14],
+                    11: [7, 10, 15], 
+                    12: [8, 13],    
+                    13: [9, 12, 14], 
+                    14: [10, 13, 15],
+                    15: [11, 14]     
+                };
+
+                if (validMoves[emptyTileIndex].includes(tileIndex)) {
+                    // Troca de posição entre a peça clicada e a peça vazia
+                    [boardState[tileIndex], boardState[emptyTileIndex]] = [boardState[emptyTileIndex], boardState[tileIndex]];
+
+                    // Atualiza o conteúdo visual
+                    tile.textContent = boardState[tileIndex] === 0 ? "" : boardState[tileIndex];
+                    emptyTile.textContent = boardState[emptyTileIndex] === 0 ? "" : boardState[emptyTileIndex];
+
+                    // Troca as classes para manter a peça vazia correta
+                    tile.classList.add('empty');
+                    emptyTile.classList.remove('empty');
+
+                    // Incrementa o contador de jogadas
+                    moveCount++;
+                    checkWrongPieces();
+                    // Atualiza as exibições
+                    updateDisplay();
+
+                    // Verifica se o estado meta foi alcançado
+                    checkGoalState();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

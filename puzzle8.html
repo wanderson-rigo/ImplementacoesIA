@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,15 +76,59 @@
             transition: background-color 0.3s;
         }
 
+        .fifteen-puzzle-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #9c21f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s;
+        }
+
+        .fifteen-puzzle-button:hover{
+            background-color: #9c21f3de;
+        }
+
         .shuffle-button:hover {
             background-color: #45a049;
         }
 
+        .blank-space {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+        
         .move-count {
             margin-top: 10px;
             font-size: 16px;
             color: #555;
         }
+
+        .wrong-pieces-count {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+    
+        .manhatan-distance {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .linha-extra {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
     </style>
 </head>
 <body>
@@ -108,20 +152,46 @@
     <div class="inversions" id="inversionsCount">
         Inversões: 0 (Paridade: par)
     </div>
+    <div class="blank-space" id="blankSpace">
+        Linha inicial do espaço vazio: 0 (De baixo para cima: )
+    </div>
     <div class="move-count" id="moveCount">
         Número de jogadas: 0
     </div>
+    <div class="wrong-pieces-count" id="wrongPiecesCount">
+        Peças fora do lugar: 0
+    </div>
+    <div class="manhatan-distance" id="manhatanDistance">
+        Array da distancia manhantan de cada peça + Total
+    </div>
+    <button class="fifteen-puzzle-button" id="fifteenPuzzleButton">Quebra-Cabeça de 15 Peças</button>
+    <div class="linha-extra" id="linhaExtra">
+        Linha extra
+    </div>
+
     <script>
+
+        document.getElementById("fifteenPuzzleButton").addEventListener("click", function() {
+            window.location.href = "puzzle15.html"; // Relative link
+        });
+    
         document.addEventListener('DOMContentLoaded', () => {
             const tiles = document.querySelectorAll('.tile');
             const grid = document.querySelector('.grid');
             const boardStateDisplay = document.getElementById('boardState');
             const inversionsDisplay = document.getElementById('inversionsCount');
             const moveCountDisplay = document.getElementById('moveCount');
+            const blankSpaceDisplay = document.getElementById('blankSpace');
+            const wrongPieceDisplay = document.getElementById('wrongPiecesCount');
+            const manhantanDisplay = document.getElementById('manhatanDistance');
             const shuffleButton = document.getElementById('shuffleButton');
 
             const goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
             let moveCount = 0;
+            let blankSpace = 1;
+            let blankSpaceIndex = 8;
+            let wrongPiecesCount = 0;
+            let manhantanArray = Array(9).fill(0);
 
             // Inicializa o estado do tabuleiro
             let boardState = Array.from(tiles).map(tile => parseInt(tile.dataset.value));
@@ -149,11 +219,43 @@
 
                 // Exibe o número de jogadas
                 moveCountDisplay.textContent = `Número de jogadas: ${moveCount}`;
+                blankSpaceDisplay.textContent = `Linha inicial do espaço vazio: ${blankSpace} (De baixo para cima) / Posição Inicial: ${blankSpaceIndex + 1}`;
+                wrongPieceDisplay.textContent = `Peças fora do lugar: ${wrongPiecesCount}`;
+                
+                // Atualiza e exibe a distância de Manhattan
+                calculateManhantanDistance();
+                const totalManhattanDistance = manhantanArray.reduce((acc, dist) => acc + dist, 0);
+                manhantanDisplay.textContent = `Array da distância Manhattan de cada peça: [${manhantanArray.join(', ')}] + Total: ${totalManhattanDistance}`;
             }
 
             function checkGoalState() {
                 if (boardState.join(',') === goalState.join(',')) {
                     alert(`Você resolveu o puzzle em ${moveCount} jogadas!`);
+                }
+            }
+
+            function checkWrongPieces() {
+                wrongPiecesCount = 0; // Reseta o contador de peças erradas 
+                for (let i = 0; i < boardState.length; i++) {
+                    if (boardState[i] !== goalState[i]) {
+                        wrongPiecesCount++;
+                    }
+                }
+            }
+
+            function calculateManhantanDistance() {
+                for (let i = 0; i < boardState.length; i++) {
+
+                    const tileValue = boardState[i];
+                    const goalPosition = goalState.indexOf(tileValue);
+                    const currentRow = Math.floor(i / 3);
+                    const currentCol = i % 3;
+                    const goalRow = Math.floor(goalPosition / 3);
+                    const goalCol = goalPosition % 3;
+
+                    const distance = Math.abs(currentRow - goalRow) + Math.abs(currentCol - goalCol);
+
+                    manhantanArray[tileValue - 1] = distance;
                 }
             }
 
@@ -164,6 +266,8 @@
                 } while (calculateInversions(boardState) % 2 !== 0); // Garante que o estado seja resolvível
 
                 moveCount = 0; // Reseta o contador de jogadas
+                blankSpaceIndex = boardState.indexOf(0);
+                blankSpace = Math.abs((Math.floor(blankSpaceIndex / 3)) - 3);  //Recorda a posição inicial do espaço vazio
 
                 // Atualiza o conteúdo visual
                 tiles.forEach((tile, index) => {
@@ -178,6 +282,7 @@
                 });
 
                 // Atualiza as exibições
+                checkWrongPieces();
                 updateDisplay();
             }
 
@@ -224,6 +329,8 @@
 
                     // Incrementa o contador de jogadas
                     moveCount++;
+
+                    checkWrongPieces();
 
                     // Atualiza as exibições
                     updateDisplay();
