@@ -158,60 +158,83 @@
         function handleClick(e) {
             const id = e.target.id;
             if (board[id] === "" && gameActive) {
+                makeMove(id, currentPlayer);
                 if (currentPlayer === "X") {
-                    // Jogada do jogador X
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "O";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
-                } else if (currentPlayer === "O") {
-                    // Jogada do jogador O via clique do mouse
-                    board[id] = currentPlayer;
-                    e.target.textContent = currentPlayer;
-                    e.target.classList.add(currentPlayer);
-
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    }
+                    currentPlayer = "O";
+                    aiMove();
                 }
+            }
+        }
+
+        function makeMove(index, player) {
+            board[index] = player;
+            cells[index].textContent = player;
+            cells[index].classList.add(player);
+
+            if (checkWinner(board, player)) {
+                highlightWinningCells(board, player);
+                alert(player + ' venceu!');
+                gameActive = false;
             }
         }
 
         function aiMove() {
             if (currentPlayer === "O" && gameActive) {
-                const emptyCells = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-                if (emptyCells.length > 0) {
-                    const randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
-                    board[randomIndex] = currentPlayer;
-                    cells[randomIndex].textContent = currentPlayer;
-                    cells[randomIndex].classList.add(currentPlayer);
+                const bestMove = minimax(board, currentPlayer).index;
+                makeMove(bestMove, currentPlayer);
+                currentPlayer = "X";
+            }
+        }
 
-                    if (checkWinner(board, currentPlayer)) {
-                        highlightWinningCells(board, currentPlayer);
-                        alert(currentPlayer + ' venceu!');
-                        gameActive = false;
-                    } else if (board.includes("")) {
-                        currentPlayer = "X";
-                        generateNextMoves(board, currentPlayer, treeRoot);
-                    } else {
-                        alert('Empate!');
-                        gameActive = false;
+        function minimax(newBoard, player) {
+            const availableSpots = newBoard.map((val, index) => val === "" ? index : null).filter(val => val !== null);
+
+            if (checkWinner(newBoard, "X")) {
+                return { score: -10 };
+            } else if (checkWinner(newBoard, "O")) {
+                return { score: 10 };
+            } else if (availableSpots.length === 0) {
+                return { score: 0 };
+            }
+
+            const moves = [];
+            for (let i = 0; i < availableSpots.length; i++) {
+                const move = {};
+                move.index = availableSpots[i];
+                newBoard[availableSpots[i]] = player;
+
+                if (player === "O") {
+                    const result = minimax(newBoard, "X");
+                    move.score = result.score;
+                } else {
+                    const result = minimax(newBoard, "O");
+                    move.score = result.score;
+                }
+
+                newBoard[availableSpots[i]] = ""; // desfaz o movimento
+                moves.push(move);
+            }
+
+            let bestMove;
+            if (player === "O") {
+                let bestScore = -Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score > bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
+                    }
+                }
+            } else {
+                let bestScore = Infinity;
+                for (let i = 0; i < moves.length; i++) {
+                    if (moves[i].score < bestScore) {
+                        bestScore = moves[i].score;
+                        bestMove = i;
                     }
                 }
             }
+
+            return moves[bestMove];
         }
 
         function resetGame() {
@@ -251,32 +274,6 @@
                     cells[index].classList.add("winning-cell");
                 });
             }
-        }
-
-        function generateNextMoves(board, player, parent) {
-            parent.innerHTML = ''; // Limpar o conteúdo atual
-
-            const availableMoves = board.map((val, index) => val === "" ? index : null).filter(val => val !== null);
-
-            availableMoves.forEach(move => {
-                const newBoard = [...board];
-                newBoard[move] = player;
-
-                const li = document.createElement('li');
-                li.textContent = `Jogador ${player} -> Movimento ${move}`;
-                parent.appendChild(li);
-
-                // Cria um mini tabuleiro para mostrar o estado do jogo após o movimento
-                const miniBoard = document.createElement('div');
-                miniBoard.className = 'mini-board';
-                newBoard.forEach((val, index) => {
-                    const miniCell = document.createElement('div');
-                    miniCell.className = 'mini-cell ' + val;
-                    miniCell.textContent = val;
-                    miniBoard.appendChild(miniCell);
-                });
-                li.appendChild(miniBoard);
-            });
         }
     </script>
 
