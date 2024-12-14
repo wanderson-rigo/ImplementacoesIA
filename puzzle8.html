@@ -1,3 +1,18 @@
+Para adicionar a funcionalidade de contar as trocas feitas no array, você precisa manter um contador para cada troca de peças realizadas no tabuleiro. Vamos adicionar um contador de trocas e atualizar o código para exibir esse valor.
+
+Aqui estão as alterações necessárias:
+
+### 1. **Adicionar o Contador de Trocas**
+
+Vamos adicionar uma variável `swapCount` para contar o número de trocas feitas e atualizar o código para incrementar esse contador sempre que uma troca for realizada.
+
+### 2. **Atualizar o Display**
+
+Vamos atualizar o display para mostrar o número total de trocas realizadas.
+
+Aqui está o código atualizado com essas funcionalidades:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,6 +78,18 @@
             color: #555;
         }
 
+        .move-count {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .swap-count {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
         .shuffle-button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -78,12 +105,6 @@
 
         .shuffle-button:hover {
             background-color: #45a049;
-        }
-
-        .move-count {
-            margin-top: 10px;
-            font-size: 16px;
-            color: #555;
         }
     </style>
 </head>
@@ -111,6 +132,9 @@
     <div class="move-count" id="moveCount">
         Número de jogadas: 0
     </div>
+    <div class="swap-count" id="swapCount">
+        Número de trocas: 0
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const tiles = document.querySelectorAll('.tile');
@@ -118,10 +142,13 @@
             const boardStateDisplay = document.getElementById('boardState');
             const inversionsDisplay = document.getElementById('inversionsCount');
             const moveCountDisplay = document.getElementById('moveCount');
+            const swapCountDisplay = document.getElementById('swapCount');
             const shuffleButton = document.getElementById('shuffleButton');
 
             const goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
             let moveCount = 0;
+            let swapCount = 0;
+            let gameWon = false;
 
             // Inicializa o estado do tabuleiro
             let boardState = Array.from(tiles).map(tile => parseInt(tile.dataset.value));
@@ -149,21 +176,34 @@
 
                 // Exibe o número de jogadas
                 moveCountDisplay.textContent = `Número de jogadas: ${moveCount}`;
+                
+                // Exibe o número de trocas
+                swapCountDisplay.textContent = `Número de trocas: ${swapCount}`;
             }
 
             function checkGoalState() {
                 if (boardState.join(',') === goalState.join(',')) {
-                    alert(`Você resolveu o puzzle em ${moveCount} jogadas!`);
+                    alert(`Você resolveu o puzzle em ${moveCount} jogadas e ${swapCount} trocas!`);
+                    gameWon = true;
                 }
             }
 
             function shuffleBoard() {
-                // Embaralha o estado do tabuleiro
-                do {
-                    boardState = boardState.sort(() => Math.random() - 0.5);
-                } while (calculateInversions(boardState) % 2 !== 0); // Garante que o estado seja resolvível
+                let solvable = false;
+                while (!solvable) {
+                    boardState = [...goalState];
+                    for (let i = boardState.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [boardState[i], boardState[j]] = [boardState[j], boardState[i]];
+                    }
+                    if (calculateInversions(boardState) % 2 === 0) {
+                        solvable = true;
+                    }
+                }
 
                 moveCount = 0; // Reseta o contador de jogadas
+                swapCount = 0; // Reseta o contador de trocas
+                gameWon = false; // Reseta o estado do jogo
 
                 // Atualiza o conteúdo visual
                 tiles.forEach((tile, index) => {
@@ -193,6 +233,8 @@
             shuffleButton.addEventListener('click', shuffleBoard);
 
             function moveTile(tile) {
+                if (gameWon) return;
+
                 const emptyTile = document.querySelector('.tile.empty');
                 const tileIndex = Array.from(tiles).indexOf(tile);
                 const emptyTileIndex = Array.from(tiles).indexOf(emptyTile);
@@ -207,32 +249,4 @@
                     5: [2, 4, 8],
                     6: [3, 7],
                     7: [4, 6, 8],
-                    8: [5, 7]
-                };
-
-                if (validMoves[emptyTileIndex].includes(tileIndex)) {
-                    // Troca de posição entre a peça clicada e a peça vazia
-                    [boardState[tileIndex], boardState[emptyTileIndex]] = [boardState[emptyTileIndex], boardState[tileIndex]];
-
-                    // Atualiza o conteúdo visual
-                    tile.textContent = boardState[tileIndex] === 0 ? "" : boardState[tileIndex];
-                    emptyTile.textContent = boardState[emptyTileIndex] === 0 ? "" : boardState[emptyTileIndex];
-
-                    // Troca as classes para manter a peça vazia correta
-                    tile.classList.add('empty');
-                    emptyTile.classList.remove('empty');
-
-                    // Incrementa o contador de jogadas
-                    moveCount++;
-
-                    // Atualiza as exibições
-                    updateDisplay();
-
-                    // Verifica se o estado meta foi alcançado
-                    checkGoalState();
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+                    8: [5,
